@@ -1,0 +1,99 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: jadwalin
+          POSTGRES_PASSWORD: jadwalin
+          POSTGRES_DB: jadwalin
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U jadwalin" --health-interval 3s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+      s3:
+        image: rustfs/rustfs:latest
+        env:
+          RUSTFS_ACCESS_KEY: jadwalin-ci
+          RUSTFS_SECRET_KEY: jadwalin-ci-secret
+        ports: ["9100:9000"]
+    env:
+      DATABASE_URL: postgres://jadwalin:jadwalin@localhost:5432/jadwalin
+      REDIS_URL: redis://localhost:6379
+      S3_ENDPOINT: http://localhost:9100
+      S3_BUCKET: jadwalin-ci
+      S3_ACCESS_KEY_ID: jadwalin-ci
+      S3_SECRET_ACCESS_KEY: jadwalin-ci-secret
+      # Klien pg_dump/pg_restore HARUS satu versi mayor dengan server (uji backup/restore menolak selisih).
+      PG_BIN_DIR: /usr/lib/postgresql/16/bin
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client-16
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: node scripts/check-secrets.mjs
+      - run: pnpm audit --prod --audit-level=high
+      - run: pnpm typecheck
+      - run: pnpm depcheck
+      - run: pnpm test
+
+  # E2E Playwright: alur klien → staf → lampiran → meeting di browser sungguhan.
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: jadwalin
+          POSTGRES_PASSWORD: jadwalin
+          POSTGRES_DB: jadwalin
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U jadwalin" --health-interval 3s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+      s3:
+        image: rustfs/rustfs:latest
+        env:
+          RUSTFS_ACCESS_KEY: jadwalin-ci
+          RUSTFS_SECRET_KEY: jadwalin-ci-secret
+        ports: ["9100:9000"]
+    env:
+      DATABASE_URL: postgres://jadwalin:jadwalin@localhost:5432/jadwalin
+      REDIS_URL: redis://localhost:6379
+      S3_ENDPOINT: http://localhost:9100
+      S3_BUCKET: jadwalin-ci
+      S3_ACCESS_KEY_ID: jadwalin-ci
+      S3_SECRET_ACCESS_KEY: jadwalin-ci-secret
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @jadwalin/db migrate
+      - run: pnpm --filter @jadwalin/worker exec tsx src/ensure-bucket.ts
+        env:
+          APP_ORIGINS: http://localhost:3100
+      - run: pnpm --filter @jadwalin/web exec playwright install --with-deps chromium
+      - run: pnpm --filter @jadwalin/web e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: apps/web/test-results

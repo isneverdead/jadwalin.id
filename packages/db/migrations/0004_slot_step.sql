@@ -1,0 +1,1 @@
+ALTER TABLE "meeting_types" ADD COLUMN "slot_step_min" integer DEFAULT 30 NOT NULL;

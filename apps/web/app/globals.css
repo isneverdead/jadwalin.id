@@ -1,0 +1,122 @@
+/* Sistem desain jadwalin.id: netral hangat, satu aksen teal, tipografi tegas, ruang napas lega. */
+:root {
+  --bg: #faf9f6;
+  --surface: #ffffff;
+  --sunken: #f2f0eb;
+  --fg: #1c1b19;
+  --muted: #6b675f;
+  --line: #e6e2da;
+  --line-strong: #cfc9bd;
+  --accent: #0f766e;
+  --accent-hover: #0b5f58;
+  --accent-soft: #e3f2ef;
+  --on-accent: #ffffff;
+  --danger: #b4281e;
+  --danger-soft: #fbeae8;
+  --radius: 14px;
+  --shadow: 0 1px 2px rgb(28 27 25 / 0.04), 0 4px 16px rgb(28 27 25 / 0.04);
+  --font: ui-sans-serif, "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #12110f;
+    --surface: #1a1917;
+    --sunken: #0e0d0c;
+    --fg: #f1efea;
+    --muted: #a39e93;
+    --line: #2a2825;
+    --line-strong: #3a3733;
+    --accent: #3fb8aa;
+    --accent-hover: #5ccabd;
+    --accent-soft: #14312e;
+    --on-accent: #07201d;
+    --danger: #ff8a7d;
+    --danger-soft: #3a1a17;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font); -webkit-font-smoothing: antialiased; }
+
+.site-header { border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(8px); position: sticky; top: 0; z-index: 10; }
+.site-header .inner { max-width: 720px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+.brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 700; letter-spacing: -0.02em; color: var(--fg); text-decoration: none; font-size: 1.05rem; }
+.brand .mark { width: 26px; height: 26px; border-radius: 8px; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 0.85rem; font-weight: 800; }
+.brand span.dot { color: var(--accent); }
+
+main { max-width: 720px; margin: 0 auto; padding: 40px 20px 72px; }
+h1 { font-size: 1.9rem; line-height: 1.2; letter-spacing: -0.03em; margin: 0 0 10px; font-weight: 700; }
+h2 { font-size: 1.05rem; letter-spacing: -0.01em; margin: 40px 0 12px; font-weight: 650; }
+h3 { font-size: 1rem; margin: 20px 0 6px; }
+p { margin: 0 0 14px; color: var(--muted); }
+small { color: var(--muted); font-size: 0.85rem; }
+strong { color: var(--fg); }
+hr { border: 0; border-top: 1px solid var(--line); margin: 36px 0 16px; }
+a { color: var(--accent); text-underline-offset: 3px; text-decoration-thickness: 1px; }
+a:hover { color: var(--accent-hover); }
+ul, ol { color: var(--muted); padding-left: 22px; margin: 0 0 14px; }
+li { margin: 4px 0; }
+
+form { display: grid; gap: 16px; margin: 20px 0; }
+label { display: grid; gap: 6px; font-size: 0.875rem; font-weight: 550; color: var(--fg); }
+input, select, textarea {
+  font: inherit; font-weight: 400; width: 100%; padding: 11px 14px; color: var(--fg);
+  border: 1px solid var(--line-strong); border-radius: 10px; background: var(--surface);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input::placeholder, textarea::placeholder { color: color-mix(in srgb, var(--muted) 70%, transparent); }
+input:hover, select:hover, textarea:hover { border-color: var(--muted); }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+textarea { resize: vertical; min-height: 96px; }
+input[type="checkbox"], input[type="radio"] { width: 18px; height: 18px; accent-color: var(--accent); padding: 0; }
+
+button {
+  font: inherit; font-weight: 600; padding: 11px 20px; border: 0; border-radius: 10px;
+  background: var(--accent); color: var(--on-accent); cursor: pointer; justify-self: start;
+  transition: background 0.15s, transform 0.05s;
+}
+button:hover { background: var(--accent-hover); }
+button:active { transform: translateY(1px); }
+button:disabled { opacity: 0.55; cursor: not-allowed; }
+button:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+button.link { background: none; color: var(--accent); padding: 4px 8px; font-weight: 550; }
+button.link:hover { background: var(--accent-soft); }
+
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 16px 20px; margin: 10px 0; display: flex; justify-content: space-between;
+  gap: 16px; align-items: center; box-shadow: var(--shadow);
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: var(--line-strong); }
+.card > span, .card > a { font-weight: 550; }
+.card small { display: block; font-weight: 400; margin-top: 2px; }
+.card a { text-decoration: none; color: var(--fg); }
+.card a:hover { color: var(--accent); }
+.card form { margin: 0; }
+
+.error { color: var(--danger); background: var(--danger-soft); border-radius: 10px; padding: 10px 14px; font-size: 0.9rem; margin: 0; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+label.check { display: flex; gap: 10px; align-items: flex-start; font-weight: 400; color: var(--muted); font-size: 0.875rem; line-height: 1.5; }
+label.check input { flex: none; margin-top: 2px; }
+
+article h2 { margin-top: 32px; }
+.legal-footer { max-width: 720px; margin: 0 auto; padding: 24px 20px 40px; border-top: 1px solid var(--line); text-align: center; }
+.legal-footer a { color: var(--muted); }
+.legal-footer a:hover { color: var(--accent); }
+
+table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+th { text-align: left; color: var(--muted); font-weight: 550; padding: 8px 10px; border-bottom: 1px solid var(--line-strong); }
+td { padding: 10px; border-bottom: 1px solid var(--line); vertical-align: top; color: var(--fg); }
+code { font: 0.85em ui-monospace, "SF Mono", Menlo, monospace; background: var(--sunken); padding: 2px 6px; border-radius: 6px; }
+.badge { display: inline-block; font-size: 0.75rem; font-weight: 600; padding: 2px 10px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); }
+
+@media (max-width: 520px) {
+  main { padding: 28px 16px 56px; }
+  h1 { font-size: 1.6rem; }
+  .card { flex-direction: column; align-items: flex-start; }
+  button { width: 100%; justify-self: stretch; }
+  button.link { width: auto; }
+}

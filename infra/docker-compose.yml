@@ -1,0 +1,27 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: jadwalin
+      POSTGRES_PASSWORD: jadwalin
+      POSTGRES_DB: jadwalin
+    ports: ["127.0.0.1:5433:5432"]
+    volumes: ["pgdata:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jadwalin"]
+      interval: 3s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    ports: ["127.0.0.1:6379:6379"]
+  # Pengganti Cloudflare R2 untuk lokal (kompatibel S3). Kredensial ini HANYA untuk dev.
+  s3:
+    image: rustfs/rustfs:latest
+    environment:
+      RUSTFS_ACCESS_KEY: jadwalin-dev
+      RUSTFS_SECRET_KEY: jadwalin-dev-secret
+    ports: ["127.0.0.1:9100:9000"]
+    volumes: ["s3data:/data"]
+volumes:
+  pgdata:
+  s3data:

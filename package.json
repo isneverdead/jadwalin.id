@@ -1,0 +1,29 @@
+{
+  "name": "jadwalin",
+  "private": true,
+  "packageManager": "pnpm@9.15.4",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "test": "turbo run test --concurrency=1",
+    "typecheck": "turbo run typecheck",
+    "depcheck": "depcruise --config .dependency-cruiser.cjs packages apps",
+    "ci": "pnpm typecheck && pnpm depcheck && pnpm test",
+    "e2e": "pnpm --filter @jadwalin/web e2e"
+  },
+  "devDependencies": {
+    "dependency-cruiser": "^16.8.0",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "postcss": "^8.5.12",
+      "esbuild": "^0.25.0",
+      "vitest": "^4.1.11",
+      "vite": "^7.3.7"
+    }
+  }
+}

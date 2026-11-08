@@ -1,0 +1,5 @@
+#!/bin/sh
+# Pembungkus DEV: jalankan pg_dump versi 16 dari dalam container Postgres lokal (klien host bisa beda versi mayor dari server).
+# Pakai: PG_BIN_DIR=$PWD/infra/pg16-wrappers. Di CI/produksi pasang klien PostgreSQL yang semajor dengan server.
+if [ "$1" = "--version" ]; then exec docker exec infra-postgres-1 pg_dump --version; fi
+exec docker exec -i -e PGPASSWORD="$PGPASSWORD" -e PGUSER="$PGUSER" -e PGDATABASE="$PGDATABASE" infra-postgres-1 pg_dump -h localhost -p 5432 "$@"
