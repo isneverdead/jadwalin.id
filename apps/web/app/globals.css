@@ -1310,3 +1310,42 @@ html:has(.book-grid), html:has(.book-grid) body { overscroll-behavior-y: contain
 }
 .pw-field button.pw-eye:hover:not(:disabled) { background: var(--accent-soft); color: var(--fg); transform: translateY(-50%); }
 .pw-field button.pw-eye:active:not(:disabled) { transform: translateY(-50%); }
+
+/* ===== Perbaikan layout mobile: bilah atas, tombol "Cara pakai", jam kerja, layanan ===== */
+/* Tombol "Cara pakai": satu ukuran di mana pun (judul langkah, judul panel, kotak petunjuk), tidak pernah melebar. */
+button.help-btn, .card button.help-btn:not(.copy):not(.link), .panel button.help-btn:not(.link):not(.copy):not(.chip) { display: inline-flex; width: auto; max-width: none; flex: none; min-height: 34px; height: 34px; padding: 0 12px 0 4px; justify-self: start; box-shadow: none; white-space: nowrap; }
+h2.step, h3.h3-tip { display: flex; flex-wrap: nowrap; align-items: center; gap: 10px; }
+h2.step .help-btn, h3.h3-tip .help-btn { margin-left: auto; }
+h3.h3-tip { justify-content: space-between; margin: 0 0 12px; }
+.help-hint .help-btn.demo { height: 34px; }
+@media (max-width: 520px) {
+  h2.step { font-size: 1.15rem; margin-top: 28px; }
+  .help-btn .help-label { font-size: 0.78rem; }
+}
+
+/* Bilah atas: tautan "Dashboard"/"Admin" disembunyikan di layar sempit (aturan di atas kalah spesifisitas dari 44px-tap-target). */
+@media (max-width: 640px) {
+  .top-nav > a.nav-dash:not(.btn):not(.user-chip) { display: none; }
+  .top-nav { gap: 2px; min-width: 0; }
+  .site-header .inner { gap: 8px; }
+}
+
+/* Jam kerja mingguan di ponsel: satu kartu per hari, jam sejajar, tanpa ikon jam yang memakan tempat. */
+@media (max-width: 640px) {
+  .week { gap: 10px; }
+  .week-row { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 12px; }
+  .week-row .ranges { display: grid; gap: 8px; justify-content: stretch; align-items: center; }
+  .week-row .ranges > small { color: var(--muted); }
+  .week-row .ranges .times { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+  .week-row .ranges .times input { width: 100%; min-width: 0; padding: 9px 10px; }
+  .week-row .ranges .times input[type="time"]::-webkit-calendar-picker-indicator { display: none; }
+  .week-row .ranges .times > button.link { min-width: 44px; justify-content: center; padding: 0; }
+  .week-row .ranges > button.link { justify-self: start; }
+  .switch .day { min-width: 0; }
+
+  /* Layanan dan produk: kolom isian sama lebar; tombol Hapus rata kanan di barisnya sendiri. */
+  .svc-edit-row, .prod-edit-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
+  .svc-edit-row .se-title { grid-column: 1 / -1; }
+  .svc-edit-row .se-del { grid-column: 1 / -1; justify-self: end; align-self: center; }
+  .svc-edit-row label, .svc-edit-row select, .svc-edit-row input { min-width: 0; }
+}
