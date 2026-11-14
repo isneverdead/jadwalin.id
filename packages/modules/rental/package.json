@@ -1,0 +1,24 @@
+{
+  "name": "@jadwalin/module-rental",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@jadwalin/core": "workspace:*",
+    "@jadwalin/db": "workspace:*",
+    "drizzle-orm": "^0.45.2",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.2",
+    "vitest": "^4.1.12",
+    "vite": "^7.3.7"
+  }
+}

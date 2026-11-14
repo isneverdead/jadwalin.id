@@ -30,7 +30,7 @@ export async function exportMyData(pool: pg.Pool, userId: string) {
       .innerJoin(schema.workspaces, eq(schema.workspaces.id, schema.workspaceClients.workspaceId))
       .where(eq(schema.workspaceClients.userId, userId));
     const requests = await db.select({ kind: schema.dataRequests.kind, status: schema.dataRequests.status, createdAt: schema.dataRequests.createdAt }).from(schema.dataRequests).where(eq(schema.dataRequests.userId, userId));
-    return { generatedAt: new Date().toISOString(), note: "Ekspor mandiri. Data tiket/booking di workspace milik penyedia jasa dikelola penyedia tersebut; hubungi mereka atau kami untuk salinan lengkap.", user: user ?? null, memberships, clientRecords, requests };
+    return { generatedAt: new Date().toISOString(), note: "Ekspor mandiri. Data tiket/booking di halaman jadwal milik penyedia jasa dikelola penyedia tersebut; hubungi mereka atau kami untuk salinan lengkap.", user: user ?? null, memberships, clientRecords, requests };
   });
 }
 

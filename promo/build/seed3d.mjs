@@ -1,0 +1,11 @@
+import { ctx, settle, browser, pool } from "./lib.mjs";
+const o = await ctx(1280, 900, "owner");
+await o.goto(`/w/demo-bintang-kamera/pembayaran`); await o.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {}); await o.waitForTimeout(1500);
+await o.locator('select[name="kind"]').selectOption("bank_transfer");
+await o.locator('input[name="label"]').fill("BNI");
+await o.locator('input[name="accountName"]').fill("Rahayu Wulandari");
+await o.locator('input[name="accountNumber"]').fill("0865290417");
+await o.locator('textarea[name="instructions"]').fill("Tulis nama dan tanggal sewa pada berita transfer.");
+await settle(o, "Simpan metode");
+console.log((await pool.query("select pm.label from payment_methods pm join workspaces w on w.id=pm.workspace_id where w.slug='demo-bintang-kamera'")).rows);
+await browser.close(); await pool.end();

@@ -9,11 +9,11 @@ export default function Page() {
       <h2>2. Akun</h2>
       <p>Anda wajib memberi data yang benar, menjaga kerahasiaan kata sandi, dan bertanggung jawab atas aktivitas akun. Email harus terverifikasi untuk memakai fitur inti.</p>
       <h2>3. Peran kami</h2>
-      <p>Untuk akun dan data penggunaan Anda sendiri, jadwalin.id bertindak sebagai pengendali data. Untuk data klien yang dimasukkan penyedia jasa ke workspace-nya, jadwalin.id bertindak sebagai pemroses data atas nama penyedia jasa (lihat <a href="/dpa">Perjanjian Pemrosesan Data</a>).</p>
+      <p>Untuk akun dan data penggunaan Anda sendiri, jadwalin.id bertindak sebagai pengendali data. Untuk data klien yang dimasukkan penyedia jasa ke halaman jadwalnya, jadwalin.id bertindak sebagai pemroses data atas nama penyedia jasa (lihat <a href="/dpa">Perjanjian Pemrosesan Data</a>).</p>
       <h2>4. Penggunaan yang dilarang</h2>
       <p>Dilarang menyalahgunakan layanan untuk spam, penipuan, konten melanggar hukum, mengunggah malware, atau mengganggu keamanan dan ketersediaan layanan. Kami dapat menangguhkan akun yang melanggar. Lihat juga <a href="/penggunaan-wajar">Penggunaan Wajar</a>.</p>
       <h2>5. Uang pihak ketiga</h2>
-      <p>jadwalin.id tidak menampung dana penyedia jasa maupun klien. Pembayaran, bila diaktifkan, diproses penyedia gateway berizin; jadwalin.id hanya memperoleh biaya platform.</p>
+      <p>jadwalin.id tidak memproses, menerima, atau menampung pembayaran. Penyedia jasa menentukan sendiri metode pembayarannya (mis. transfer bank atau QRIS miliknya); pelanggan membayar langsung kepada penyedia jasa dan dapat mengunggah bukti sebagai catatan. Keaslian dan penerimaan pembayaran diverifikasi oleh penyedia jasa; jadwalin.id tidak menjamin keaslian bukti pembayaran. Pendapatan jadwalin.id hanya berasal dari biaya langganan.</p>
       <h2>6. Ketersediaan dan batas tanggung jawab</h2>
       <p>Kami berupaya menjaga layanan tetap tersedia tetapi tidak menjamin bebas gangguan. Sejauh diizinkan hukum, tanggung jawab kami dibatasi pada biaya yang Anda bayar dalam 3 bulan terakhir.</p>
       <h2>7. Penghentian</h2>

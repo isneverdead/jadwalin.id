@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arah Jadwal Bertipografi — jadwalin.id</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#fafbff; --surface:#ffffff; --ink:#0a0e2a; --muted:#4a5275; --line:#d5daf0; --line-2:#aab3de;
+  --blue:#1830e0; --blue-hover:#1224b0; --on-blue:#ffffff; --signal:#ff4b2b; --signal-text:#b9341a;
+  --ok-text:#0b6b4a; --warn-text:#8a5a00;
+  --font:"Familjen Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#070a1c;--surface:#0d1230;--ink:#f2f4ff;--muted:#a4abd0;--line:#1f2650;--line-2:#323c78;--blue:#3550ff;--blue-hover:#5a70ff;--on-blue:#ffffff;--signal:#ff6a4d;--signal-text:#ff8a72;--ok-text:#5ce0a0;--warn-text:#f0c15a}}
+:root[data-theme=dark]{--bg:#070a1c;--surface:#0d1230;--ink:#f2f4ff;--muted:#a4abd0;--line:#1f2650;--line-2:#323c78;--blue:#3550ff;--blue-hover:#5a70ff;--on-blue:#ffffff;--signal:#ff6a4d;--signal-text:#ff8a72;--ok-text:#5ce0a0;--warn-text:#f0c15a}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 1rem/1.55 var(--font);overflow-x:hidden;transition:background-color .4s,color .4s}
+h1,h2,h3,p{margin:0}a{color:inherit}:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+.bar{border-bottom:1px solid var(--line)}.bar .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:60px;flex-wrap:wrap;padding-block:6px}
+.brand{display:inline-flex;align-items:center;min-height:44px;font-weight:700;font-size:1.25rem;letter-spacing:-.03em;text-decoration:none}
+.seg{display:inline-flex;gap:2px;border:1px solid var(--line-2);padding:3px}.seg button{all:unset;cursor:pointer;min-height:44px;min-width:44px;padding:0 14px;display:grid;place-items:center;font-weight:600;font-size:.9rem;color:var(--muted)}.seg button[aria-pressed=true]{background:var(--blue);color:var(--on-blue)}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;min-height:48px;padding:0 24px;display:inline-flex;align-items:center;justify-content:center;border:2px solid var(--ink);font-weight:600;transition:background .15s,color .15s}
+.btn:hover{background:var(--ink);color:var(--bg)}.btn.pri{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}.btn.pri:hover{background:var(--blue-hover);border-color:var(--blue-hover)}.btn[disabled]{opacity:.45;pointer-events:none}
+/* hero: tipografi sebagai jadwal */
+.hero{padding:40px 0 24px}
+.stage{container-type:inline-size;position:relative}
+.hrs{display:grid;grid-template-columns:repeat(8,1fr);font-size:.74rem;color:var(--muted);font-variant-numeric:tabular-nums;border-bottom:2px solid var(--ink);padding-bottom:6px}
+.hrs span{padding-left:4px}
+.tl{display:grid;grid-template-columns:repeat(8,1fr);row-gap:.05em;position:relative;padding:8px 0;background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px calc(100%/8))}
+.w{font-weight:700;font-size:min(14.8cqw,10.6rem);line-height:1.12;letter-spacing:-.05em;padding:0 .14em .04em;background:var(--blue);color:var(--on-blue);white-space:nowrap;overflow:hidden;opacity:0}
+.stage.play .w{animation:drop .85s cubic-bezier(.3,1.3,.5,1) both;animation-delay:var(--d)}
+.stage.done .w{opacity:1}
+@keyframes drop{0%{opacity:0;transform:translateY(-140%)}55%{opacity:1}72%{transform:translateY(5%) scaleY(.95)}100%{opacity:1;transform:none}}
+.w1{grid-column:1/6;grid-row:1;--d:.2s}.w2{grid-column:2/9;grid-row:2;--d:.6s}.w3{grid-column:1/9;grid-row:3;--d:1s}.w4{grid-column:1/9;grid-row:4;--d:1.4s}
+.ghost{grid-column:3/7;grid-row:2;z-index:3;display:flex;align-items:center;padding:0 .3em;font-weight:600;font-size:min(5.2cqw,3.4rem);letter-spacing:-.02em;color:var(--signal-text);border:3px dashed var(--signal);background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--signal) 22%,var(--bg)) 0 8px,var(--bg) 8px 16px);opacity:0;pointer-events:none}
+.stage.play .ghost{animation:ghost 3.2s 2.4s both}
+@keyframes ghost{0%{opacity:0;transform:translateY(-190%)}14%{opacity:1;transform:none}20%{transform:translateX(-12px)}27%{transform:translateX(12px)}34%{transform:translateX(-7px)}41%{transform:none}78%{opacity:1}100%{opacity:0;transform:translateY(-90%) scale(.92)}}
+.tag{margin-top:10px;font-weight:600;color:var(--signal-text);min-height:1.6em;opacity:0}.stage.play .tag{animation:tg .4s 3s both}@keyframes tg{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stage.done .tag{opacity:1}
+.foot{display:grid;gap:26px;margin-top:34px;align-items:end}@media(min-width:860px){.foot{grid-template-columns:1.2fr .8fr;gap:60px}}
+.lead{font-size:1.2rem;max-width:46ch}.sub{color:var(--muted);max-width:52ch;margin-top:10px;font-size:1rem}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.replay{all:unset;cursor:pointer;min-height:44px;padding:0 4px;font-weight:600;color:var(--muted);text-decoration:underline;text-underline-offset:4px}
+/* sections */
+.sec{border-top:2px solid var(--ink);margin-top:72px;padding:36px 0 8px}
+.sec h2{font-weight:700;font-size:clamp(2.3rem,7vw,4.4rem);line-height:.98;letter-spacing:-.045em;max-width:14ch;margin-bottom:12px}
+.grid12{display:grid;gap:36px}@media(min-width:900px){.grid12{grid-template-columns:4fr 8fr;gap:48px}}
+.stat{display:grid;gap:18px;align-content:start}.stat div{border-top:1px solid var(--line-2);padding-top:10px}.stat b{display:block;font-weight:700;font-size:clamp(3.4rem,9vw,6rem);line-height:.9;letter-spacing:-.06em;font-variant-numeric:tabular-nums;color:var(--blue)}.stat span{color:var(--muted)}
+.board{border-top:2px solid var(--ink);font-variant-numeric:tabular-nums}
+.bh{display:grid;grid-template-columns:78px repeat(6,1fr);font-size:.74rem;color:var(--muted);padding:6px 0;border-bottom:1px solid var(--line-2)}
+.br{display:grid;grid-template-columns:78px 1fr;border-bottom:1px solid var(--line)}
+.br .n{font-weight:600;font-size:.84rem;padding:12px 6px 0 0;line-height:1.2}
+.tr{position:relative;height:56px;background:repeating-linear-gradient(90deg,var(--line) 0 1px,transparent 1px calc(100%/6))}
+.bk{position:absolute;top:6px;bottom:6px;background:var(--blue);color:var(--on-blue);font-weight:600;font-size:.78rem;display:flex;align-items:center;padding:0 7px;overflow:hidden;white-space:nowrap}
+.bk.pend{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--blue) 20%,var(--bg)) 0 7px,var(--bg) 7px 14px);color:var(--ink);border:2px solid var(--blue)}
+.now{position:absolute;top:0;bottom:0;width:2px;background:var(--signal);z-index:2}
+.legend{display:flex;gap:18px;flex-wrap:wrap;margin-top:12px;font-size:.88rem;color:var(--muted)}.legend i{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:6px;background:var(--blue)}.legend i.p{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--blue) 20%,var(--bg)) 0 4px,var(--bg) 4px 8px);border:2px solid var(--blue)}
+.pick{margin-top:22px}
+.dsel{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px}.d{all:unset;cursor:pointer;min-height:48px;min-width:64px;padding:0 12px;display:grid;place-items:center;border:2px solid var(--line-2);font-weight:600;transition:all .15s}.d:hover{border-color:var(--ink)}.d.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}.d[disabled]{opacity:.4;cursor:not-allowed}
+.hr{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}@media(min-width:700px){.hr{grid-template-columns:repeat(8,1fr)}}
+.h{all:unset;cursor:pointer;min-height:64px;display:grid;place-items:center;border:2px solid var(--ink);font-weight:700;font-size:1.15rem;font-variant-numeric:tabular-nums;transition:transform .15s,background .15s}
+.h:hover{transform:translateY(-3px)}.h.full{border-color:var(--line-2);color:var(--muted);background:repeating-linear-gradient(135deg,var(--line) 0 5px,transparent 5px 10px);pointer-events:none}.h.on{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}.h.hold{background:repeating-linear-gradient(135deg,color-mix(in srgb,var(--blue) 20%,var(--bg)) 0 7px,var(--bg) 7px 14px);border-color:var(--blue);color:var(--ink)}
+.sum{margin-top:18px;font-size:1.15rem;min-height:3.4em;max-width:60ch}.sum small{display:block;color:var(--muted);font-size:.92rem;margin-top:4px}
+.row2{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.pill{font-weight:600;font-size:.9rem;padding:6px 12px;border:2px solid var(--blue);color:var(--ink)}
+footer{padding:48px 0 60px;color:var(--muted);font-size:.9rem}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important}.w{opacity:1}}
+</style></head>
+<body>
+<header class="bar"><div class="wrap"><a class="brand" href="index.html">jadwalin.id</a>
+<div class="seg" role="group" aria-label="Tema"><button data-t="auto">Otomatis</button><button data-t="light">Terang</button><button data-t="dark">Gelap</button></div></div></header>
+<main><div class="wrap">
+<section class="hero">
+ <div class="stage" id="stage" aria-label="Apapun bisnismu, jadwalin.id solusinya.">
+  <div class="hrs" aria-hidden="true"><span>08.00</span><span>09.00</span><span>10.00</span><span>11.00</span><span>12.00</span><span>13.00</span><span>14.00</span><span>15.00</span></div>
+  <h1 class="tl" style="margin:0;font-weight:inherit;font-size:inherit"><span class="w w1">Apapun</span><span class="w w2">bisnismu,</span><span class="w w3">jadwalin.id</span><span class="w w4">solusinya.</span><span class="ghost" aria-hidden="true">pesan jam ini</span></h1>
+  <p class="tag" aria-live="polite">Ditolak otomatis: jam itu sudah terisi.</p>
+ </div>
+ <div class="foot"><div><p class="lead">Tiap kata di atas adalah satu booking di grid jam. Yang mencoba menimpa jam terisi ditolak, begitu juga di jadwal Anda.</p><p class="sub">Jadwal, pemesanan, dan tiket untuk usaha apa pun di Indonesia.</p></div>
+ <div class="cta"><a class="btn pri" href="#">Buat halaman booking</a><a class="btn" href="#pemilik">Lihat sisi pemilik</a><button class="replay" id="replay">Putar ulang</button></div></div>
+</section>
+
+<section class="sec" id="pemilik"><div class="grid12">
+ <div><h2>Hari Anda dalam tiga angka.</h2><div class="stat" style="margin-top:22px"><div><b>6</b><span>booking hari ini</span></div><div><b>5</b><span>jam masih kosong</span></div><div><b>1</b><span>bukti DP menunggu Anda</span></div></div></div>
+ <div><p class="sub" style="margin:0 0 16px">Klinik Sehat Bersama, Sabtu 14 November. Garis oranye menandai sekarang. Data fiktif.</p>
+ <div class="board" role="img" aria-label="Jadwal tiga dokter hari ini">
+  <div class="bh"><span></span><span>09</span><span>10</span><span>11</span><span>13</span><span>14</span><span>15</span></div>
+  <div class="br"><span class="n">dr. Sari</span><div class="tr"><div class="bk" style="left:calc(0*100%/6 + 2px);width:calc(100%/6 - 4px)">Rina</div><div class="bk pend" style="left:calc(2*100%/6 + 2px);width:calc(100%/6 - 4px)">Budi</div><div class="bk" style="left:calc(4*100%/6 + 2px);width:calc(2*100%/6 - 4px)">Kelas yoga</div><div class="now" style="left:calc(2.35*100%/6)"></div></div></div>
+  <div class="br"><span class="n">dr. Bayu</span><div class="tr"><div class="bk" style="left:calc(1*100%/6 + 2px);width:calc(2*100%/6 - 4px)">Tari</div><div class="bk" style="left:calc(4*100%/6 + 2px);width:calc(100%/6 - 4px)">Made</div><div class="now" style="left:calc(2.35*100%/6)"></div></div></div>
+  <div class="br"><span class="n">dr. Intan</span><div class="tr"><div class="bk" style="left:calc(0*100%/6 + 2px);width:calc(2*100%/6 - 4px)">Lia</div><div class="bk pend" style="left:calc(3*100%/6 + 2px);width:calc(100%/6 - 4px)">Yuni</div><div class="now" style="left:calc(2.35*100%/6)"></div></div></div>
+ </div>
+ <div class="legend"><span><i></i>Dikonfirmasi</span><span><i class="p"></i>Bukti DP menunggu verifikasi</span></div>
+ <p class="sub">Pengingat ke pelanggan dikirim lewat email. WhatsApp resmi belum tersedia.</p></div>
+</div></section>
+
+<section class="sec"><h2>Pelanggan memilih jam yang masih terbuka.</h2>
+<p class="sub">Tanpa akun dan tanpa chat bolak-balik. Jam terisi tidak bisa dipilih.</p>
+<div class="pick"><div class="dsel" id="dsel"></div><div class="hr" id="hr"></div>
+ <p class="sum" id="sum">Pilih tanggal dulu.</p>
+ <div class="row2"><button class="btn pri" id="book" disabled>Pilih tanggal dulu</button><span class="pill" id="pill" hidden>Menunggu verifikasi</span></div>
+ <p class="sub" id="after" hidden>Slot ditahan 3 jam. Klinik mengonfirmasi setelah bukti DP Anda diverifikasi.</p></div>
+</section>
+</div></main>
+<footer><div class="wrap">Arah desain Jadwal Bertipografi untuk jadwalin.id. Tampilan contoh, belum dipasang di aplikasi.</div></footer>
+
+<script>
+(function(){
+var root=document.documentElement,q=new URLSearchParams(location.search),forced=q.get('theme');
+function setTheme(t){if(forced&&t!==forced)t=forced;else if(!forced){try{localStorage.setItem('jd-theme',t)}catch(e){}}
+ if(t==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',t);
+ document.querySelectorAll('.seg button').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.t===t))})}
+var s=null;try{s=localStorage.getItem('jd-theme')}catch(e){}setTheme(forced||s||'auto');
+document.querySelectorAll('.seg button').forEach(function(b){b.onclick=function(){setTheme(b.dataset.t)}});
+addEventListener('message',function(e){if(e.data&&e.data.jdTheme)setTheme(e.data.jdTheme)});
+var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,st=document.getElementById('stage');
+function play(){st.classList.remove('play','done');void st.offsetWidth;if(RM){st.classList.add('done');return}st.classList.add('play');setTimeout(function(){st.classList.add('done')},6000)}
+document.getElementById('replay').onclick=play;play();
+/* pilih jam */
+var HR=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],BL=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'],H=['08.00','09.00','10.00','11.00','13.00','14.00','15.00','16.00'];
+var ds=document.getElementById('dsel'),hr=document.getElementById('hr'),sum=document.getElementById('sum'),bk=document.getElementById('book'),pill=document.getElementById('pill'),after=document.getElementById('after'),selD=null,selH=null,done=false;
+for(var i=0;i<6;i++){(function(i){var d=new Date(2026,10,16+i),b=document.createElement('button');b.className='d';b.disabled=d.getDay()===0;b.textContent=HR[d.getDay()]+' '+d.getDate();
+ b.onclick=function(){if(done)return;selD=d;selH=null;ds.querySelectorAll('.d').forEach(function(x){x.classList.toggle('on',x===b)});hours();upd()};ds.appendChild(b)})(i)}
+function hours(){hr.innerHTML='';H.forEach(function(t,i){var full=(selD.getDate()*3+i)%5===0,b=document.createElement('button');b.className='h'+(full?' full':'');b.textContent=t;b.setAttribute('aria-label',t+(full?' penuh':' tersedia'));
+ b.onclick=function(){if(done)return;selH=t;hr.querySelectorAll('.h').forEach(function(x){x.classList.toggle('on',x===b)});upd()};hr.appendChild(b)})}
+function upd(){if(selD&&selH){bk.disabled=false;bk.textContent='Pesan '+selH+' WIB';sum.innerHTML=HR[selD.getDay()]+', '+selD.getDate()+' '+BL[selD.getMonth()]+', '+selH+' WIB.<small>DP Rp45.000 dibayar langsung ke klinik, lalu Anda unggah bukti.</small>'}
+ else{bk.disabled=true;bk.textContent=selD?'Pilih jam dulu':'Pilih tanggal dulu';sum.textContent=selD?'Pilih jam yang masih terbuka.':'Pilih tanggal dulu.'}}
+bk.textContent='Pilih tanggal dulu';
+bk.onclick=function(){done=true;bk.disabled=true;pill.hidden=false;after.hidden=false;var on=hr.querySelector('.h.on');if(on){on.classList.remove('on');on.classList.add('hold')}};
+})();
+</script></body></html>

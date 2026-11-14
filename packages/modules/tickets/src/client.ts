@@ -9,6 +9,7 @@ import {
   withClientAccess,
   type StorageAdapter,
   type UploadRequest,
+  requireFeature,
 } from "@jadwalin/core";
 import { schema } from "@jadwalin/db";
 import { and, asc, count, desc, eq, gte, ne, sql } from "drizzle-orm";
@@ -35,6 +36,7 @@ export async function createClientTicket(pool: pg.Pool, userId: string, slug: st
   const title = cleanTitle(input.title);
   const description = cleanBody(input.description, "Deskripsi", false);
   return withClientAccess(pool, userId, slug, { createIfMissing: true, forWrite: true }, async (db, c) => {
+    await requireFeature(db, c, "tiket");
     const since = new Date((opts.now ?? new Date()).getTime() - 24 * 3600_000);
     const [{ today }] = await db.select({ today: sql<number>`count(*)::int` }).from(schema.tickets).where(gte(schema.tickets.createdAt, since)) as [{ today: number }];
     if (today >= DAILY_TICKET_LIMIT) throw new AppError("invalid_input", `Batas ${DAILY_TICKET_LIMIT} tiket per hari tercapai. Coba lagi besok atau balas tiket yang sudah ada.`);
@@ -68,7 +70,7 @@ export async function listMyTickets(pool: pg.Pool, userId: string, slug: string)
       .from(schema.tickets)
       .orderBy(desc(schema.tickets.lastActivityAt))
       .limit(100);
-    return { workspaceName: c.workspaceName, timezone: c.timezone, blocked: c.blocked, tickets };
+    return { workspaceName: c.workspaceName, timezone: c.timezone, blocked: c.blocked, features: c.features, tickets };
   });
 }
 

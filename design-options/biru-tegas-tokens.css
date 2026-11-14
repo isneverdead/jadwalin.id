@@ -1,0 +1,112 @@
+/* Token desain Biru Tegas untuk jadwalin.id (dari design-options/biru-tegas.html).
+   Salin blok :root ke apps/web/app/globals.css. Fonts: Outfit, Geist, Geist Mono (Google Fonts atau next/font).
+   Nama token sama dengan globals.css saat ini (--bg, --surface, --fg, --accent, ...) plus --accent-2, --ok, --warn, --radius-*. */
+
+:root {
+  --bg: #f2f4f6;
+  --surface: #ffffff;
+  --sunken: #e6eaee;
+  --fg: #0b1722;
+  --muted: #5d6a77;
+  --line: #d9dee3;
+  --line-strong: #bcc5ce;
+  --accent: #1d5fa8;
+  --accent-hover: #12467f;
+  --accent-soft: #e4edf8;
+  --on-accent: #ffffff;
+  --accent-2: #12273a;
+  --accent-2-soft: #e4edf8;
+  --ok: #0b7a5a;
+  --ok-soft: #dff5ec;
+  --warn: #8a5a00;
+  --warn-soft: #fdf0cf;
+  --danger: #b4281e;
+  --danger-soft: #fbeae8;
+  --radius: 28px;
+  --radius-sm: 16px;
+  --radius-pill: 999px;
+  --radius-btn: 999px;
+  --radius-day: 50%;
+  --shadow: 0 30px 60px -34px rgb(11 23 34 / 0.28);
+  --h-weight: 600;
+  --h-ls: -0.045em;
+  --font-display: "Outfit", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease: cubic-bezier(.16,1,.3,1);
+  --spring: cubic-bezier(.16,1,.3,1);
+  --dur: 900ms;
+  --rise: 24px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #08121c;
+    --surface: #0f1d2b;
+    --sunken: #060d15;
+    --fg: #eaf0f6;
+    --muted: #9fb0c0;
+    --line: #1c3044;
+    --line-strong: #2b4560;
+    --accent: #5aa2f0;
+    --accent-hover: #82b9f6;
+    --accent-soft: #12304d;
+    --on-accent: #04111d;
+    --accent-2: #cfe2f7;
+    --accent-2-soft: #12304d;
+    --ok: #4fd1a5;
+    --ok-soft: #10332a;
+    --warn: #f0c15a;
+    --warn-soft: #3a2d0c;
+    --danger: #ff8a7d;
+    --danger-soft: #3a1a17;
+    --shadow: 0 30px 60px -34px rgb(0 0 0 / 0.7);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #08121c;
+  --surface: #0f1d2b;
+  --sunken: #060d15;
+  --fg: #eaf0f6;
+  --muted: #9fb0c0;
+  --line: #1c3044;
+  --line-strong: #2b4560;
+  --accent: #5aa2f0;
+  --accent-hover: #82b9f6;
+  --accent-soft: #12304d;
+  --on-accent: #04111d;
+  --accent-2: #cfe2f7;
+  --accent-2-soft: #12304d;
+  --ok: #4fd1a5;
+  --ok-soft: #10332a;
+  --warn: #f0c15a;
+  --warn-soft: #3a2d0c;
+  --danger: #ff8a7d;
+  --danger-soft: #3a1a17;
+  --shadow: 0 30px 60px -34px rgb(0 0 0 / 0.7);
+}
+
+/* Ciri khas komponen (opsional, referensi) */
+/* karakter opsi */
+:root{--mono:"Geist Mono",ui-monospace,Menlo,monospace}
+h1,h2,h3,.display,.stat b,.cal-h b{font-family:var(--font-display);font-weight:600}
+.eyebrow,.label,.shot h3 b,.agenda time,.kv small,.dow span,.ticker,.badge,.pill,.slot,.stat small{font-family:var(--mono);letter-spacing:.04em}
+.eyebrow{text-transform:uppercase;font-size:.75rem;font-weight:500;color:var(--accent)}
+.eyebrow::before{width:7px;height:7px;border-radius:50%;background:currentColor;animation:pulse 2s infinite}
+.shot h3 b::before{content:"("}.shot h3 b::after{content:")"}.shot h3{font-size:1.4rem;letter-spacing:-.03em}
+.hero{padding:72px 0 56px}.hero h1{font-size:clamp(3rem,12vw,7.6rem);line-height:.92;max-width:11ch;letter-spacing:-.05em}
+.hero h1 em{background:var(--accent-soft);padding:0 .22em;border-radius:999px;display:inline-block;line-height:1.05}
+.hero::before{display:none}
+.ticker{background:transparent;color:var(--fg);border-color:var(--line)}.ticker div{font-weight:500;text-transform:uppercase;font-size:.82rem}
+.btn{border-radius:999px;border-width:1.5px;padding:0 26px}
+.btn.primary{padding:6px 6px 6px 26px}.btn.primary.block{justify-content:space-between}
+.btn.primary .arr{width:38px;height:38px;border-radius:50%;background:var(--on-accent);color:var(--accent);display:grid;place-items:center;transform:rotate(-45deg);transition:transform .5s var(--spring)}
+.btn.primary:hover .arr{transform:rotate(0)}
+.btn.primary .arr::before{content:""}
+.badge{font-weight:500;font-size:.72rem;text-transform:uppercase}
+.phone{border-radius:36px;box-shadow:0 40px 80px -40px rgb(11 23 34/.45)}
+.card{border-radius:28px}.slot{font-weight:500}
+.avatar{border-radius:50%}.stat.hero-stat{background:var(--accent2);border-color:var(--accent2);color:var(--surface)}
+:root[data-theme=dark] .stat.hero-stat{color:var(--on-accent)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .stat.hero-stat{color:var(--on-accent)}}
+.stat.hero-stat small,.stat.hero-stat .up{color:inherit}
+.day.sel{box-shadow:0 0 0 4px var(--accent-soft)}
+.tabbar a{font-family:var(--mono);font-size:.64rem;letter-spacing:.02em}

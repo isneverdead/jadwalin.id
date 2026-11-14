@@ -45,9 +45,8 @@ function appUrl(): string {
   if (!u) throw new Error("BETTER_AUTH_URL wajib diisi di worker saat pembayaran aktif.");
   return u;
 }
-if (!paymentEnv) log.warn("PAYMENT_PROVIDER kosong: rekonsiliasi pembayaran tidak berjalan");
 // Hook tiket (onCancelled) dipasang di web; worker hanya melepas slot dan membatalkan pengingat (modul tiket tak diimpor di sini).
-const payments = paymentEnv ? { pool, provider: createPaymentProvider(paymentEnv), hooks: bookingPaymentHooks({ baseUrl: appUrl() }) } : null;
+const payments = { pool, provider: createPaymentProvider(paymentEnv), hooks: bookingPaymentHooks({ baseUrl: appUrl() }) };
 const running = await startWorker({ redisUrl: env.REDIS_URL, deps: { pool, sender, from: mail.EMAIL_FROM, storage, log, backup: backupEnv ? { env: backupEnv, databaseUrl: env.DATABASE_URL } : null, payments } });
 log.info("worker berjalan");
 

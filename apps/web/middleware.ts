@@ -27,7 +27,7 @@ export function middleware(request: NextRequest) {
     "default-src 'self'",
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic' https://challenges.cloudflare.com${isProd ? "" : " 'unsafe-eval'"}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
+    `img-src 'self' data: blob: ${origins(process.env.S3_ENDPOINT).join(" ")}`.trim(),
     "font-src 'self'",
     `connect-src ${connect.join(" ")}`,
     "frame-src https://challenges.cloudflare.com",
@@ -35,7 +35,8 @@ export function middleware(request: NextRequest) {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    ...(isProd ? ["upgrade-insecure-requests"] : []),
+    // Hanya bila situs memang HTTPS: di build produksi lokal (E2E) memaksa HTTPS akan memblokir penyimpanan http://localhost.
+    ...(isProd && process.env.BETTER_AUTH_URL?.startsWith("https://") ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
 
   const headers = new Headers(request.headers);

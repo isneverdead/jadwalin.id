@@ -58,7 +58,7 @@ export async function inviteMember(
       workspaceId: access.workspaceId,
       to: email,
       template: "workspace_invite",
-      payload: { url: `${opts.baseUrl.replace(/\/$/, "")}/undangan/${token}`, workspaceName: ws?.name ?? "workspace", inviterName: inviter?.name ?? "Seseorang", roleLabel: ROLE_LABEL[input.role] },
+      payload: { url: `${opts.baseUrl.replace(/\/$/, "")}/undangan/${token}`, workspaceName: ws?.name ?? "halaman jadwal", inviterName: inviter?.name ?? "Seseorang", roleLabel: ROLE_LABEL[input.role] },
       dedupeKey: `invite:${inviteId}`,
       now,
     });
@@ -96,7 +96,7 @@ export async function previewInvitation(pool: pg.Pool, userId: string, token: st
     if (!me || !inv || inv.acceptedAt || inv.revokedAt || inv.expiresAt <= now) return null;
     const [ws] = await db.select({ name: schema.workspaces.name }).from(schema.workspaces).where(eq(schema.workspaces.id, inv.workspaceId)).limit(1);
     return {
-      workspaceName: ws?.name ?? "workspace",
+      workspaceName: ws?.name ?? "halaman jadwal",
       role: inv.role,
       invitedEmail: inv.email,
       /** Akun login boleh menerima hanya bila email-nya sama dan sudah terverifikasi. */
@@ -129,7 +129,7 @@ export async function acceptInvitation(pool: pg.Pool, userId: string, token: str
     try {
       await db.insert(schema.workspaceMembers).values({ workspaceId: found.workspaceId, userId, role: found.role });
     } catch (error) {
-      if (isUniqueViolation(error)) throw new AppError("already_member", "Anda sudah menjadi anggota workspace ini.");
+      if (isUniqueViolation(error)) throw new AppError("already_member", "Anda sudah menjadi anggota halaman ini.");
       throw error;
     }
     await audit(db, { workspaceId: found.workspaceId, actorUserId: userId, action: "invitation.accepted", entityType: "workspace_invitation", entityId: found.id, diff: { role: found.role } });

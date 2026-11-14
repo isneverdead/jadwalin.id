@@ -10,3 +10,7 @@ coverage
 graphify-out
 test-results
 playwright-report
+.next-e2e
+.next-alt
+.next-rel
+qr-pp-pipe

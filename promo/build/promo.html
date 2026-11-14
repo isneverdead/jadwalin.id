@@ -1,0 +1,164 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><title>jadwalin.id — Akses Awal</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Outfit:wght@600;700&display=swap"><style>
+@page { size: A4; margin: 0 }
+:root{--b:#1d5fa8;--bd:#0f3b72;--bl:#e8f0fa;--ink:#0f172a;--mut:#475569;--line:#e2e8f0;--ph:#fff3bf}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:Geist,-apple-system,"Helvetica Neue",Helvetica,Arial,sans-serif;color:var(--ink);font-size:10.2pt;line-height:1.5}
+.page{width:210mm;height:297mm;padding:15mm 16mm 14mm;position:relative;page-break-after:always;overflow:hidden;background:#fff}
+.page:last-child{page-break-after:auto}
+.top{display:flex;justify-content:space-between;align-items:center;font-size:8.5pt;color:var(--mut);margin-bottom:8mm}
+.logo{font-weight:800;font-size:12pt;color:var(--b);letter-spacing:-.3px}
+.logo i{font-style:normal;color:var(--ink)}
+.foot{position:absolute;left:16mm;right:16mm;bottom:8mm;display:flex;justify-content:space-between;font-size:7.5pt;color:#94a3b8;border-top:1px solid var(--line);padding-top:2.5mm}
+.eyebrow{color:var(--b);font-weight:700;font-size:8.5pt;letter-spacing:1.2px;text-transform:uppercase;margin-bottom:2mm}
+h1,h2,.tier .pr,.tier .nm{font-family:Outfit,Geist,"Helvetica Neue",Arial,sans-serif}
+h1{font-size:25pt;line-height:1.12;letter-spacing:-.8px;font-weight:800}
+h2{font-size:19pt;line-height:1.2;letter-spacing:-.5px;font-weight:800;margin-bottom:3mm}
+h3{font-size:11.5pt;font-weight:700;margin-bottom:1.5mm}
+p{color:var(--mut)}
+.lead{font-size:11.5pt;color:var(--mut);margin-top:3mm}
+.badge{display:inline-block;background:var(--bl);color:var(--b);border:1px solid #c7d7fe;border-radius:99px;padding:1mm 3.5mm;font-size:8.5pt;font-weight:700}
+ul.ck{list-style:none}
+ul.ck li{position:relative;padding-left:6mm;margin:1.6mm 0;color:var(--ink)}
+ul.ck li:before{content:"";position:absolute;left:0;top:1.6mm;width:3.2mm;height:3.2mm;border-radius:50%;background:var(--b)}
+ul.ck li:after{content:"";position:absolute;left:1.05mm;top:2.3mm;width:1.1mm;height:1.8mm;border:solid #fff;border-width:0 .45mm .45mm 0;transform:rotate(40deg)}
+ul.x li:before{background:#94a3b8}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:4mm}
+.card{border:1px solid var(--line);border-radius:3mm;padding:4mm 4.5mm;background:#fff}
+.card.soft{background:#f8fafc}
+.note{font-size:7.8pt;color:#64748b;margin-top:2mm}
+/* frames */
+.bw{border:1px solid #cbd5e1;border-radius:2.6mm;overflow:hidden;background:#fff;box-shadow:0 2mm 5mm rgba(15,23,42,.12)}
+.bw .bar{height:6mm;background:#f1f5f9;border-bottom:1px solid #e2e8f0;display:flex;align-items:center;gap:1.2mm;padding:0 2.5mm}
+.bw .bar b{width:1.8mm;height:1.8mm;border-radius:50%;background:#cbd5e1}
+.bw .bar span{margin-left:2mm;flex:1;background:#fff;border:1px solid #e2e8f0;border-radius:1mm;font-size:6.2pt;color:#64748b;padding:.3mm 2mm;line-height:1.4}
+.bw .vp{overflow:hidden;position:relative}
+.bw .vp img{display:block;width:100%;position:absolute;left:0}
+.ph{width:53mm;border:1.6mm solid #0f172a;border-radius:7mm;overflow:hidden;background:#fff;box-shadow:0 2mm 5mm rgba(15,23,42,.18);margin:0 auto}
+.ph .vp{overflow:hidden;position:relative}
+.ph .vp img{display:block;width:100%;position:absolute;left:0;top:0}
+.cap{text-align:center;font-size:8.5pt;font-weight:700;margin-top:3mm}
+.cap small{display:block;font-weight:400;color:var(--mut);font-size:8pt}
+.ph-ph{background:var(--ph);color:#7a5b00;border-radius:1mm;padding:0 1mm;font-weight:600}
+.step{display:flex;gap:3mm;align-items:flex-start}
+.step .n{flex:none;width:8mm;height:8mm;border-radius:50%;background:var(--b);color:#fff;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:10pt}
+/* cover */
+.cover{background:linear-gradient(160deg,#0f3b72 0%,#1d5fa8 58%,#3f86cc 100%);color:#fff;padding:0}
+.cover .in{padding:16mm}
+.cover h1{color:#fff;font-size:33pt;margin-top:6mm}
+.cover p{color:#dbe7ff}
+.cover .badge{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.35);color:#fff}
+.cover .logo{color:#fff;font-size:15pt}.cover .logo i{color:#bcd2ff}
+.cmp{display:grid;grid-template-columns:1fr 1fr;gap:3mm;margin-top:2mm}
+.cmp div{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:3mm;padding:3.5mm 4mm;color:#fff;font-size:9.2pt}
+.cmp div b{display:block;font-size:8pt;letter-spacing:1px;text-transform:uppercase;color:#bcd2ff;margin-bottom:1mm}
+/* price */
+.tier{border:1px solid var(--line);border-radius:3.5mm;padding:5mm;position:relative;background:#fff;display:flex;flex-direction:column}
+.tier.hl{border:2px solid var(--b);background:var(--bl)}
+.tier .nm{font-weight:800;font-size:12pt}
+.tier .pr{font-size:21pt;font-weight:800;letter-spacing:-.6px;color:var(--bd);margin:1mm 0}
+.tier .pr small{display:block;font-size:8.5pt;font-weight:600;color:var(--mut);letter-spacing:0}
+.tier .sub{font-size:8.6pt;color:var(--mut);margin-bottom:2mm}
+.tier ul.ck li{font-size:8.9pt;margin:1.2mm 0}
+.tag{position:absolute;top:-2.8mm;right:4mm;background:var(--b);color:#fff;font-size:7.4pt;font-weight:700;border-radius:99px;padding:.6mm 3mm}
+.tag.y{background:#b45309}
+table{width:100%;border-collapse:collapse;font-size:9pt}
+th,td{padding:2.2mm 2.5mm;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:7.8pt;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);background:#f8fafc}
+.rm{display:grid;grid-template-columns:1fr 1fr;gap:2.5mm 5mm}
+.rm div{border:1px dashed #cbd5e1;border-radius:2.5mm;padding:2.5mm 3.5mm;font-size:9.2pt;color:var(--ink)}
+.cta{background:linear-gradient(160deg,#0f3b72,#1d5fa8);color:#fff;border-radius:4mm;padding:6mm 7mm}
+.cta h2{color:#fff;margin-bottom:1.5mm}.cta p{color:#dbe7ff}
+.cta .ph-ph{background:#fff3bf;color:#7a5b00}
+
+.row3{display:flex;gap:6mm;justify-content:center}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:4mm}
+.step p{font-size:8.6pt;line-height:1.35}
+.stepn{width:6.5mm;height:6.5mm;border-radius:50%;background:var(--b);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:9pt;margin-bottom:2mm}
+.card p{font-size:9pt;line-height:1.4}
+.cta .lbl{color:#bcd2ff;font-size:8pt;text-transform:uppercase;letter-spacing:1px}
+.page{font-size:9.6pt}
+.lead{font-size:10.8pt}
+ul.ck li{margin:1.1mm 0;font-size:9.2pt}
+.bw .vp img{image-rendering:auto}
+
+.tier{padding:4mm}.tier ul.ck li{font-size:8.5pt;margin:.8mm 0}.tier .pr{font-size:18pt}
+table{font-size:8.6pt}th,td{padding:1.5mm 2.2mm}
+.cta{padding:5mm 6mm}.cta h2{font-size:15pt}.rm div{padding:1.8mm 3.2mm;font-size:8.8pt}.rm{gap:2mm 4mm}
+.card{padding:3mm 4mm}.card h3{font-size:10.5pt}
+</style></head><body><section class="page cover"><div class="in">
+<div style="display:flex;justify-content:space-between;align-items:center"><div class="logo">jadwalin<i>.id</i></div><span class="badge">Akses awal · beta tertutup</span></div>
+<h1>Jadwal, tiket, DP, dan sewa — dalam satu link untuk klien Anda.</h1>
+<p class="lead" style="color:#dbe7ff;font-size:12.2pt;max-width:150mm">Super app penjadwalan untuk bisnis jasa dan rental di Indonesia. Klien memesan tanpa akun, DP dibayar langsung ke Anda lalu Anda verifikasi, dan semua percakapan serta berkas tercatat rapi.</p>
+<div style="display:flex;gap:8mm;margin-top:9mm;align-items:flex-start">
+<div style="width:118mm"><div class="bw" style="width:118mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/w/demo-pajak-rahayu/tiket/1</span></div><div class="vp" style="height:85.7mm"><img src="../screenshots/d3-detail-tiket.png" style="top:-8.8mm"></div></div></div>
+<div style="margin-top:12mm"><div style="width:52mm"><div class="ph" style="width:52mm"><div class="vp" style="height:125.1mm"><img src="../screenshots/m2-pilih-slot.png" style="top:-28.8mm"></div></div></div></div></div>
+<div style="margin-top:11mm"><p style="color:#bcd2ff;font-size:8.3pt;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-bottom:2mm">Psikolog · coach · konsultan · tutor · MUA · fotografer · rental kamera &amp; kendaraan</p>
+<div class="cmp"><div><b>Sebelum</b>Jadwal lewat chat bolak-balik, bukti transfer tercecer di WhatsApp, sewa ganda.</div><div><b>Dengan jadwalin.id</b>Klien pilih tanggal sendiri, DP terverifikasi, tiket &amp; pesanan otomatis.</div></div></div>
+<p style="position:absolute;left:16mm;right:16mm;bottom:10mm;font-size:7.8pt;color:#bcd2ff">Tangkapan layar adalah aplikasi yang berjalan, memakai data contoh (nama, isi percakapan, dan nomor rekening fiktif).</p>
+</div></section>
+<section class="page"><div class="top"><div class="logo">jadwalin<i>.id</i></div><span>Akses awal · 2</span></div>
+<div class="eyebrow">Pemesanan publik</div><h2>Klien memesan jadwal sendiri, tanpa akun.</h2>
+<div class="row3" style="margin-top:6mm"><div style="width:56mm"><div class="ph" style="width:56mm"><div class="vp" style="height:130.0mm"><img src="../screenshots/m1-halaman-publik.png" style="top:0.0mm"></div></div><div class="cap">Etalase layanan<small>Link milik Anda</small></div></div><div style="width:56mm"><div class="ph" style="width:56mm"><div class="vp" style="height:130.0mm"><img src="../screenshots/m2-pilih-slot.png" style="top:-29.1mm"></div></div><div class="cap">Kalender &amp; slot kosong<small>Pilih tanggal, lalu jam</small></div></div><div style="width:56mm"><div class="ph" style="width:56mm"><div class="vp" style="height:130.0mm"><img src="../screenshots/m3-kelola-booking.png" style="top:0.0mm"></div></div><div class="cap">Kelola lewat tautan email<small>Ubah jadwal / batalkan</small></div></div></div>
+<div class="grid2" style="margin-top:7mm"><ul class="ck "><li>Slot yang sudah dipesan <b>langsung hilang</b> dari pilihan orang lain; anti-bentrok dijaga di database.</li><li>Beberapa host dengan <b>slot gabungan</b> kalender.</li><li>Ubah jadwal atau batalkan lewat <b>tautan email</b>, tanpa login.</li><li>Layanan bisa <b>gratis atau ber-DP</b> (lihat halaman berikutnya).</li></ul><ul class="ck "><li>Email <b>konfirmasi</b> plus pengingat <b>24 jam</b> dan <b>1 jam</b> sebelum jadwal.</li><li>Perlindungan bot <b>Cloudflare Turnstile</b>, honeypot, dan pembatas laju.</li><li>Persetujuan privasi dicatat pada setiap pemesanan.</li><li>Zona waktu <b>WIB / WITA / WIT</b>.</li></ul></div>
+<p class="lead" style="margin-top:4mm">Bagikan <b style="color:var(--ink)">jadwalin.id/nama-anda</b> di bio Instagram, WhatsApp, atau kartu nama.</p>
+<div class="foot"><span>jadwalin.id — akses awal</span><span>Alamat pada gambar ilustratif; layanan belum diluncurkan publik. Data contoh.</span></div></section>
+<section class="page"><div class="top"><div class="logo">jadwalin<i>.id</i></div><span>Akses awal · 3</span></div>
+<div class="eyebrow">DP &amp; pembayaran manual</div><h2>DP dibayar langsung ke Anda, Anda yang verifikasi.</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:8mm;margin-top:5mm;align-items:start">
+<div style="display:flex;gap:4mm"><div style="width:46mm"><div class="ph" style="width:46mm"><div class="vp" style="height:113.0mm"><img src="../screenshots/m4-bayar.png" style="top:0.0mm"></div></div><div class="cap">Pelanggan bayar &amp; unggah bukti</div></div><div style="width:46mm"><div class="ph" style="width:46mm"><div class="vp" style="height:70.2mm"><img src="../screenshots/m5-bukti-terkirim.png" style="top:0.0mm"></div></div><div class="cap">Bukti diterima<small>Slot tetap ditahan</small></div></div></div>
+<div><div style="width:88mm"><div class="bw" style="width:88mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/w/…/pembayaran</span></div><div class="vp" style="height:97.6mm"><img src="../screenshots/d7-pembayaran.png" style="top:-6.5mm"></div></div><div class="cap">Antrean verifikasi untuk staf<small>Lihat bukti, konfirmasi lunas atau tolak</small></div></div></div></div>
+<div class="grid3" style="margin-top:6mm"><div class="card"><div class="stepn">1</div><h3>Atur metode bayar</h3><p>Rekening bank, QRIS, e-wallet, atau lainnya — Anda yang menentukan.</p></div><div class="card"><div class="stepn">2</div><h3>Isi DP di layanan</h3><p>Tentukan nominal DP per layanan (atau persen DP per produk sewa).</p></div><div class="card"><div class="stepn">3</div><h3>Verifikasi bukti</h3><p>Pelanggan unggah bukti, Anda cek lalu <b>konfirmasi lunas</b> atau tolak dengan alasan.</p></div></div>
+<div class="card soft" style="margin-top:5mm"><b>jadwalin.id tidak memproses uang.</b> Uang berpindah langsung dari pelanggan ke rekening Anda; tidak ada fee transaksi dan tidak ada gateway. Slot ditahan selama jendela bayar dan dilepas otomatis bila tidak dibayar. Keaslian bukti transfer tetap Anda cek sendiri pada mutasi rekening.</div>
+<div class="foot"><span>jadwalin.id — akses awal</span><span>Nomor rekening, nama, dan bukti transfer pada gambar adalah contoh fiktif.</span></div></section>
+<section class="page"><div class="top"><div class="logo">jadwalin<i>.id</i></div><span>Akses awal · 4</span></div>
+<div class="eyebrow">Tiket &amp; portal klien</div><h2>Setiap booking jadi tiket; klien punya portalnya sendiri.</h2>
+<div class="grid2" style="margin-top:5mm;align-items:start"><div style="width:85mm"><div class="bw" style="width:85mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/w/…/tiket/1</span></div><div class="vp" style="height:118.2mm"><img src="../screenshots/d3-detail-tiket.png" style="top:-6.3mm"></div></div><div class="cap">Sisi penyedia<small>Percakapan, catatan internal (kuning), lampiran, meeting</small></div></div><div style="width:85mm"><div class="bw" style="width:85mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/jadwal-saya/…/tiket/1</span></div><div class="vp" style="height:118.2mm"><img src="../screenshots/d6-tiket-klien.png" style="top:-6.3mm"></div></div><div class="cap">Sisi klien: “Jadwal saya”<small>Tanpa catatan internal</small></div></div></div>
+<div class="grid2" style="margin-top:6mm"><ul class="ck "><li><b>Booking otomatis jadi tiket</b> untuk penyedia jasa.</li><li>Penugasan ke anggota tim, status &amp; prioritas.</li><li>Komentar publik <b>dan catatan internal</b> (tak terlihat klien).</li><li>Lampiran dengan catatan konteks; meeting terjadwal dari tiket.</li><li>Riwayat perubahan lengkap dan email notifikasi.</li></ul><ul class="ck "><li>Klien melihat tiket, <b>membalas</b>, melampirkan berkas, melihat jadwal meeting, dan menutup tiket.</li><li>Tamu yang kemudian mendaftar dengan email sama (terverifikasi) otomatis melihat tiketnya.</li><li>Tim tampil sebagai nama usaha; nama staf tidak dibuka ke klien.</li></ul></div>
+<h3 style="margin-top:5mm;font-size:12pt">Alur klien: pesan → tiket → meeting → pengingat</h3>
+<div class="grid4" style="margin-top:2mm"><div class="step"><div class="n">1</div><div><b>Pesan</b><p>Pilih slot tanpa akun.</p></div></div><div class="step"><div class="n">2</div><div><b>Tiket</b><p>Otomatis untuk tim Anda.</p></div></div><div class="step"><div class="n">3</div><div><b>Meeting</b><p>Berkas &amp; tautan meeting.</p></div></div><div class="step"><div class="n">4</div><div><b>Pengingat</b><p>Email 24 jam &amp; 1 jam.</p></div></div></div>
+<div class="foot"><span>jadwalin.id — akses awal</span><span>Data pada gambar adalah contoh fiktif.</span></div></section>
+<section class="page"><div class="top"><div class="logo">jadwalin<i>.id</i></div><span>Akses awal · 5</span></div>
+<div class="eyebrow">Sewa barang · baru</div><h2>Rental kamera, mobil, atau alat pesta: katalog + tanggal sewa.</h2>
+<div class="row3" style="margin-top:5mm"><div style="width:44mm"><div class="ph" style="width:44mm"><div class="vp" style="height:81.6mm"><img src="../screenshots/r1-katalog-sewa.png" style="top:0.0mm"></div></div><div class="cap">Katalog sewa</div></div><div style="width:44mm"><div class="ph" style="width:44mm"><div class="vp" style="height:81.6mm"><img src="../screenshots/r2-produk-sewa.png" style="top:0.0mm"></div></div><div class="cap">Pilih tanggal sewa</div></div><div style="width:44mm"><div class="ph" style="width:44mm"><div class="vp" style="height:81.6mm"><img src="../screenshots/r3-status-sewa.png" style="top:0.0mm"></div></div><div class="cap">Status pesanan &amp; DP</div></div></div>
+<div class="grid2" style="margin-top:7mm;align-items:start"><div style="width:85mm"><div class="bw" style="width:85mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/w/…/sewa</span></div><div class="vp" style="height:43.8mm"><img src="../screenshots/r5-pesanan-sewa.png" style="top:-6.3mm"></div></div><div class="cap">Pesanan sewa<small>Konfirmasi, barang diambil, barang kembali</small></div></div><div style="width:85mm"><div class="bw" style="width:85mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/w/…/produk</span></div><div class="vp" style="height:43.8mm"><img src="../screenshots/r4-produk-staf.png" style="top:-6.3mm"></div></div><div class="cap">Produk sewa<small>Harga/hari, unit, DP, jaminan, foto</small></div></div></div>
+<div class="grid2" style="margin-top:5mm"><ul class="ck "><li>Katalog produk dengan foto, harga per hari, jumlah unit.</li><li>Pelanggan memilih <b>rentang tanggal</b>; sistem <b>mencegah unit yang sama tersewa ganda</b>.</li><li>DP dalam persen dari total, uang jaminan dicatat.</li></ul><ul class="ck "><li>Pesanan ber-DP memakai alur bukti &amp; verifikasi yang sama.</li><li>Penyedia menandai <b>barang diambil</b> dan <b>barang kembali</b>.</li><li>Unit ditahan 3 jam; dilepas otomatis bila DP tak dibayar.</li></ul></div>
+<p class="note">Sisa pembayaran dan uang jaminan diselesaikan langsung antara pemilik dan penyewa. Foto produk pada gambar adalah ilustrasi; nama merek hanyalah contoh. Belum ada pesanan manual/walk-in maupun kalender unit.</p>
+<div class="foot"><span>jadwalin.id — akses awal</span><span>Data pada gambar adalah contoh fiktif.</span></div></section>
+<section class="page"><div class="top"><div class="logo">jadwalin<i>.id</i></div><span>Akses awal · 6</span></div>
+<div class="eyebrow">Pengaturan usaha</div><h2>Siap pakai dalam hitungan menit: pilih bidang, atur jam, undang tim.</h2>
+<div class="grid2" style="margin-top:5mm;align-items:start"><div style="width:85mm"><div class="bw" style="width:85mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/dashboard/bisnis-baru</span></div><div class="vp" style="height:58.4mm"><img src="../screenshots/d8-template.png" style="top:-31.9mm"></div></div><div class="cap">30+ template bidang usaha<small>Layanan, jam, atau produk awal sudah terisi</small></div></div><div style="width:85mm"><div class="bw" style="width:85mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/w/…/jadwal</span></div><div class="vp" style="height:58.4mm"><img src="../screenshots/d4-jadwal.png" style="top:-6.6mm"></div></div><div class="cap">Jam kerja mingguan<small>Libur &amp; pengecualian tanggal, pratinjau slot</small></div></div></div>
+<div class="grid2" style="margin-top:6mm;align-items:start"><div style="width:85mm"><div class="bw" style="width:85mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/w/…/jadwal</span></div><div class="vp" style="height:54.5mm"><img src="../screenshots/d4-jadwal.png" style="top:-66.4mm"></div></div><div class="cap">Layanan &amp; host<small>Durasi, harga/DP, link booking, siapa yang melayani</small></div></div><div style="width:85mm"><div class="bw" style="width:85mm"><div class="bar"><b></b><b></b><b></b><span>jadwalin.id/w/…</span></div><div class="vp" style="height:54.5mm"><img src="../screenshots/d1-ringkasan.png" style="top:-7.3mm"></div></div><div class="cap">Ringkasan &amp; tim<small>Bukti menunggu, tiket aktif, anggota</small></div></div></div>
+<div class="grid2" style="margin-top:5mm"><ul class="ck "><li>Jam rutin mingguan, libur/jam tambahan per tanggal.</li><li>Durasi, jeda (buffer), pemberitahuan minimum, rentang hari.</li><li>Zona WIB, WITA, atau WIT; <b>anti-bentrok di level database</b>.</li></ul><ul class="ck "><li>Undang anggota lewat email; peran owner / admin / staf.</li><li>Data tiap usaha <b>terisolasi di level database</b>.</li><li>Log audit kejadian penting; fitur bisa dinyalakan/dimatikan sesuai kebutuhan.</li></ul></div>
+<div class="foot"><span>jadwalin.id — akses awal</span><span>Data pada gambar adalah contoh fiktif.</span></div></section>
+<section class="page"><div class="top"><div class="logo">jadwalin<i>.id</i></div><span>Akses awal · 7</span></div>
+<div class="eyebrow">Harga onboarding</div><h2>Mulai sendiri, atau kami siapkan untuk Anda.</h2>
+<div class="grid3" style="margin-top:4mm;align-items:stretch">
+<div class="tier"><div class="nm">Mandiri</div><div class="pr">Gratis</div><div class="sub">Untuk yang nyaman mengatur sendiri.</div><ul class="ck "><li>Akun siap pakai</li><li>Panduan tertulis dan template</li><li>Pilih template bidang usaha, atur sendiri</li><li>Bantuan pesan untuk kendala teknis</li></ul></div>
+<div class="tier hl"><span class="tag">Paling dipilih</span><div class="nm">Terpandu</div><div class="pr">Rp499.000 <small>sekali bayar</small></div><div class="sub">Kami yang menyiapkan, Anda tinggal pakai.</div><ul class="ck "><li>Workspace &amp; profil bisnis</li><li>Hingga <b>3 layanan atau produk sewa</b></li><li>Jam rutin &amp; libur yang Anda tentukan</li><li>Halaman link pendek <b>jadwalin.id/nama-anda</b></li><li>Teks &amp; deskripsi halaman publik</li><li>Undangan <b>1 anggota tim</b></li><li>Pelatihan video 45–60 menit</li><li><b>1× revisi</b> dalam 7 hari</li></ul></div>
+<div class="tier"><span class="tag y">USULAN</span><div class="nm">Terpandu Plus</div><div class="pr">Rp1.299.000 <small>sekali bayar</small></div><div class="sub">Untuk praktik/rental dengan tim.</div><ul class="ck "><li>Semua isi Terpandu</li><li>Hingga <b>8 layanan/produk</b>, <b>5 anggota tim</b></li><li>Beberapa host dengan slot gabungan</li><li><b>Penyiapan pembayaran DP</b> (metode bayar &amp; DP)</li><li>Alur kerja tiket tertulis untuk tim</li><li><b>2 sesi</b> pelatihan, <b>14 hari</b> pendampingan chat</li><li><b>2× revisi</b> dalam 14 hari</li></ul></div></div>
+<table style="margin-top:4mm"><tr><th style="width:24%">Syarat</th><th>Terpandu</th><th>Terpandu Plus (usulan)</th></tr>
+<tr><td>Estimasi</td><td>2–3 hari kerja sejak data lengkap</td><td>4–5 hari kerja sejak data lengkap</td></tr>
+<tr><td>Tidak termasuk</td><td colspan="2">Revisi di luar jatah (hanya penyesuaian pengaturan, bukan fitur baru), logo/konten, desain situs, domain kustom, biaya pihak ketiga, dan fitur yang belum tersedia.</td></tr></table>
+<div class="eyebrow" style="margin-top:7mm">Rencana harga langganan</div>
+<p style="margin-bottom:2mm"><b style="color:var(--ink)">Selama akses awal belum ada tagihan langganan</b>; semua fitur yang berjalan bisa dipakai. Berikut <b>rencana</b> setelah paket dibuka (belum berlaku; pengguna akses awal diberi tahu lebih dulu).</p>
+<table><tr><th></th><th>Gratis</th><th>Pro</th><th>Bisnis</th></tr>
+<tr><td><b>Harga bulanan</b></td><td>Rp0</td><td>Rp79.000</td><td>Rp199.000</td></tr>
+<tr><td><b>Harga tahunan</b> (10× bulanan)</td><td>Rp0</td><td>Rp790.000</td><td>Rp1.990.000</td></tr>
+<tr><td>Jenis layanan</td><td>3</td><td>15</td><td>50</td></tr>
+<tr><td>Anggota tim</td><td>2</td><td>5</td><td>20</td></tr>
+<tr><td>Berkas maks. · email/bulan</td><td>10 MB · 300</td><td>25 MB · 2.000</td><td>50 MB · 10.000</td></tr></table>
+<p class="note">DP dengan bukti manual direncanakan tersedia di semua paket, tanpa fee transaksi. Batas per paket adalah usulan dan belum diterapkan di aplikasi; harga belum memperhitungkan PPN. Harga dapat berubah sebelum penagihan dibuka.</p>
+<div class="foot"><span>jadwalin.id — akses awal</span><span>Harga dalam Rupiah. Syarat lengkap dikonfirmasi tertulis sebelum pengerjaan.</span></div></section>
+<section class="page"><div class="top"><div class="logo">jadwalin<i>.id</i></div><span>Akses awal · 8</span></div>
+<div class="eyebrow">Keamanan &amp; privasi</div><h2 style="font-size:17pt">Dibangun hati-hati sejak awal.</h2>
+<div class="grid2" style="margin-top:2mm;gap:3mm"><div class="card"><h3>Data terisolasi</h3><p>Data tiap usaha dipisahkan di level database (Row-Level Security), bukan hanya di kode.</p></div><div class="card"><h3>Catatan internal tertutup</h3><p>Catatan tim dan lampiran tersembunyi tidak terlihat maupun bisa diunduh klien.</p></div><div class="card"><h3>Tautan rahasia &amp; bukti bayar</h3><p>Token disimpan sebagai hash; bukti pembayaran hanya bisa diunduh staf usaha terkait.</p></div><div class="card"><h3>Perlindungan bot, audit, cadangan</h3><p>Turnstile + pembatas laju; log audit; pencadangan harian terenkripsi dengan uji restore otomatis (dibangun, diaktifkan saat peluncuran).</p></div></div>
+<p class="note" style="margin-top:2mm">Dokumen legal (syarat, privasi, refund, DPA, penggunaan wajar) sudah tersedia sebagai draf dan masih menunggu tinjauan hukum.</p>
+<div class="eyebrow" style="margin-top:6mm">Peta jalan</div><h2 style="font-size:16pt">Segera hadir — belum tersedia hari ini</h2>
+<p>Rencana, bukan fitur yang sudah berjalan; urutan dan waktu bisa berubah.</p>
+<div class="rm" style="margin-top:2mm"><div>Pengingat WhatsApp resmi (saat ini: email)</div><div>Admin AI WhatsApp (dengan alih ke manusia)</div><div>Tagihan berulang</div><div>Kelas &amp; membership</div><div>Modul nikahan / acara</div><div>Sinkron Google Calendar</div><div>Paket berlangganan &amp; penagihan otomatis</div><div>Aplikasi seluler asli</div></div>
+<div class="note" style="margin-top:3mm"><b>Jujur soal tahap kami.</b> jadwalin.id masih <b>akses awal (beta tertutup)</b>: belum dibuka untuk umum dan badan usaha belum berdiri. Kami tidak mengklaim izin/sertifikasi dan tidak menampilkan testimoni atau jumlah pelanggan.</div>
+<div class="cta" style="margin-top:4mm"><div class="eyebrow" style="color:#bcd2ff">Ajakan bertindak</div><h2>Jadi pengguna akses awal.</h2><p>Tempat terbatas untuk beberapa bisnis jasa dan rental pertama. Daftar atau hubungi kami — kami bantu mulai dari onboarding.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:3mm 6mm;margin-top:4mm;font-size:10pt"><div><span class="lbl">Daftar</span><br><span class="ph-ph">[URL pendaftaran]</span></div><div><span class="lbl">WhatsApp</span><br><span class="ph-ph">[Nomor WhatsApp]</span></div><div><span class="lbl">Email</span><br><span class="ph-ph">[Email]</span></div><div><span class="lbl">Kontak</span><br><span class="ph-ph">[Nama pemilik]</span></div></div></div>
+<div class="foot"><span>jadwalin.id — akses awal</span><span>Peta jalan: rencana, tanpa jaminan tanggal.</span></div></section></body></html>

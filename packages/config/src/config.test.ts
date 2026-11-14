@@ -33,7 +33,10 @@ describe("konfigurasi aman-secara-default", () => {
 });
 
 describe("loadPaymentEnv", () => {
-  it("kosong = pembayaran mati (null)", () => expect(loadPaymentEnv({})).toBeNull());
+  it("kosong = pembayaran manual (bawaan, ADR 0002)", () => {
+    expect(loadPaymentEnv({})).toEqual({ provider: "manual" });
+    expect(loadPaymentEnv({ PAYMENT_PROVIDER: "manual" })).toEqual({ provider: "manual" });
+  });
   it("fake butuh rahasia dan DILARANG di produksi", () => {
     expect(loadPaymentEnv({ PAYMENT_PROVIDER: "fake", PAYMENT_FAKE_SECRET: "x".repeat(16) })).toEqual({ provider: "fake", fakeSecret: "x".repeat(16) });
     expect(() => loadPaymentEnv({ PAYMENT_PROVIDER: "fake" })).toThrow(/PAYMENT_FAKE_SECRET|tidak valid/);

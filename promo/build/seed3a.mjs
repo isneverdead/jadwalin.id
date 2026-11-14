@@ -1,0 +1,13 @@
+import { ctx, shot, browser, pool } from "./lib.mjs";
+const D = "/Users/fariz/Documents/PORTFOLIO/Jadwalin.id/promo/build/scan";
+const g = await ctx(390, 844, null);
+const url = (await import("node:fs")).readFileSync("state/dp-url.txt", "utf8").trim().replace("http://localhost:3000", "");
+await g.goto(url); await g.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {}); await g.waitForTimeout(2500);
+await shot(g, null, "m5-bukti-terkirim", { clip: { x: 0, y: 0, width: 390, height: 640 }, prep: (p) => p.evaluate(() => window.scrollTo(0, 0)) });
+const o = await ctx(1280, 900, "owner");
+await o.goto("/dashboard/bisnis-baru"); await o.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {}); await o.waitForTimeout(2500);
+await o.getByText("Sewa kamera & perlengkapan", { exact: false }).first().click();
+await o.waitForTimeout(1200);
+await shot(o, null, "baru2", { dir: D, full: true });
+console.log((await o.locator("body").innerText()).slice(0, 100));
+await browser.close(); await pool.end();

@@ -1,0 +1,2 @@
+ALTER TABLE "payment_proofs" ALTER COLUMN "status" SET DEFAULT 'draft';--> statement-breakpoint
+ALTER TABLE "workspaces" ADD COLUMN "features" jsonb DEFAULT '{"tiket":true,"pembayaran":true,"berkas":true}'::jsonb NOT NULL;

@@ -1,4 +1,5 @@
 "use client";
+import { PasswordInput } from "@/components/password-input";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
@@ -12,11 +13,11 @@ function ResetForm() {
 
   if (!token) {
     return (
-      <>
+      <div className="auth-card">
         <h1>Tautan tidak valid</h1>
         <p>Tautan atur ulang kata sandi tidak valid atau sudah kedaluwarsa.</p>
         <p><Link href="/lupa-sandi">Minta tautan baru</Link></p>
-      </>
+      </div>
     );
   }
 
@@ -34,14 +35,14 @@ function ResetForm() {
   }
 
   return (
-    <>
+    <div className="auth-card">
       <h1>Atur kata sandi baru</h1>
       <form onSubmit={onSubmit}>
-        <label>Kata sandi baru (minimal 10 karakter)<input name="password" type="password" required minLength={10} autoComplete="new-password" /></label>
+        <label>Kata sandi baru (minimal 10 karakter)<PasswordInput name="password" required minLength={10} autoComplete="new-password" /></label>
         {error && <p className="error" role="alert">{error}</p>}
         <button disabled={busy}>{busy ? "Memproses…" : "Simpan kata sandi"}</button>
       </form>
-    </>
+    </div>
   );
 }
 

@@ -1,6 +1,6 @@
 # ADR 0001 — Gateway pembayaran dan hak role worker untuk pembayaran
 
-Status: **Diusulkan** (2026-11-08). Menyentuh aturan #3, #10, #12 dan melebarkan hak `jadwalin_worker` (wajib ADR).
+Status: **Digantikan oleh ADR 0002 (2026-11-08)** — pemilik memutuskan tidak memproses pembayaran; kode gateway dipertahankan nonaktif. Sebelumnya: Diusulkan. Menyentuh aturan #3, #10, #12 dan melebarkan hak `jadwalin_worker` (wajib ADR).
 
 ## Konteks
 M7 menambah DP/pembayaran di booking. Aturan #3: jadwalin tidak pernah menampung uang pihak ketiga; hanya fee platform. Pemilik sudah punya akun Midtrans (aplikasi lain) dan sedang menanyakan lewat email apakah aplikasi baru bisa dipasang dan apakah ada model sub-merchant/split. Jawaban belum ada.

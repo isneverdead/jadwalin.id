@@ -1,0 +1,10 @@
+import { ctx, settle, browser, pool } from "./lib.mjs";
+const o = await ctx(1280, 900, "owner");
+await o.goto(`/w/demo-pajak-rahayu/jadwal`); await o.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {}); await o.waitForTimeout(1500);
+await o.locator("summary", { hasText: "Ubah nama" }).nth(2).click();
+const f = o.locator('form:has(input[name="depositIdr"])').filter({ has: o.locator('input[name="title"][value="Review SPT Tahunan 60 Menit"]') });
+await f.getByLabel(/^DP/).fill("150000");
+await Promise.all([o.waitForResponse((r) => r.request().method() === "POST"), f.getByRole("button", { name: "Simpan perubahan" }).click()]);
+await o.waitForTimeout(1500);
+console.log((await pool.query("select title, deposit_idr from meeting_types")).rows, (await pool.query("select kind,label from payment_methods")).rows);
+await browser.close(); await pool.end();

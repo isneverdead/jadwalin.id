@@ -4,6 +4,7 @@ import {
   consumeRateLimit,
   hashToken,
   hostsOfType,
+  requireFeature,
   insertBooking,
   newToken,
   pickAvailableHost,
@@ -33,6 +34,7 @@ function ticketTitle(typeTitle: string, topic: string): string {
 export function ticketBookingHooks(): BookingHooks {
   return {
     onBooked: async (db, ctx) => {
+      if (!ctx.features.tiket) return; // usaha tidak memakai tiket: booking berdiri sendiri
       const ticketId = randomUUID();
       const number = await nextTicketNumber(db, ctx.workspaceId);
       const description = [`Topik: ${ctx.topic}`, ...(ctx.notes ? [ctx.notes] : []), "Dijadwalkan lewat halaman booking publik."].join("\n\n");
@@ -88,10 +90,11 @@ export async function bookAsClient(pool: pg.Pool, userId: string, slug: string, 
 
   const token = newToken(24);
   return withClientAccess(pool, userId, slug, { createIfMissing: true, forWrite: true }, async (db, c) => {
+    await requireFeature(db, c, "tiket"); // portal klien memesan lewat tiket
     const [type] = await db.select().from(schema.meetingTypes).where(and(eq(schema.meetingTypes.slug, typeSlug.toLowerCase()), eq(schema.meetingTypes.active, true))).limit(1);
     if (!type) throw new AppError("not_found", "Jenis pertemuan tidak ditemukan.");
     // DP lewat portal klien belum didukung: gagal tertutup agar booking berbayar tak pernah terkonfirmasi tanpa pembayaran.
-    if (type.depositIdr > 0) throw new AppError("payment_unavailable", "Pertemuan berbayar saat ini hanya dapat dipesan lewat tautan publik workspace.");
+    if (type.depositIdr > 0) throw new AppError("payment_unavailable", "Pertemuan berbayar saat ini hanya dapat dipesan lewat tautan publik halaman jadwal.");
     const hosts = await hostsOfType(db, type.id);
     if (hosts.length === 0) throw new AppError("not_found", "Jenis pertemuan ini belum tersedia.");
     const host = await pickAvailableHost(db, c.workspaceId, type.id, hosts, input.startsAt, now);

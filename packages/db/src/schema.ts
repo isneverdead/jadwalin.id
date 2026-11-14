@@ -47,6 +47,8 @@ export const users = pgTable("users", {
   /** Versi Syarat Layanan + Kebijakan Privasi yang disetujui saat mendaftar (UU PDP: bukti persetujuan). */
   termsVersion: text("terms_version"),
   termsAcceptedAt: timestamp("terms_accepted_at", { withTimezone: true }),
+  /** Ditangguhkan oleh superadmin platform (ADR 0005): sesi tidak lagi dianggap sah. */
+  suspendedAt: timestamp("suspended_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 });
@@ -101,6 +103,19 @@ export const workspaces = pgTable("workspaces", {
   name: text("name").notNull(),
   timezone: text("timezone").notNull().default("Asia/Jakarta"),
   ownerUserId: uuid("owner_user_id").notNull().references(() => users.id),
+  /** Fitur yang dipakai usaha ini (tiket, pembayaran, berkas). Bawaan: semua aktif agar usaha lama tidak berubah. */
+  features: jsonb("features").$type<Record<string, boolean>>().notNull().default({ tiket: true, pembayaran: true, berkas: true }),
+  /** Soft delete: usaha dihapus pemilik. Data (pembayaran, audit) dipertahankan; usaha tak lagi muncul dan slug dibebaskan. */
+  deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  /** Ubah jadwal oleh pelanggan: 'auto' (langsung berlaku) atau 'approval' (menunggu persetujuan penyedia). ADR 0004. */
+  rescheduleMode: text("reschedule_mode").notNull().default("auto"),
+  /** Batas minimal (jam sebelum mulai) agar pelanggan boleh mengubah/membatalkan sendiri. 0 = tanpa batas. */
+  changeMinHours: integer("change_min_hours").notNull().default(0),
+  /** Nomor WhatsApp usaha (62xxx) untuk tombol "Hubungi langsung" di halaman booking pelanggan (tautan wa.me, bukan API). */
+  contactPhone: text("contact_phone"),
+  /** Paket langganan platform: gratis | pro | bisnis. Diubah hanya lewat verifikasi superadmin (ADR 0005). */
+  plan: text("plan").notNull().default("gratis"),
+  planUntil: timestamp("plan_until", { withTimezone: true }),
   createdAt: createdAt(),
 });
 
@@ -480,4 +495,182 @@ export const refunds = pgTable(
     createdAt: createdAt(),
   },
   (t) => [unique("refunds_key").on(t.providerRefundKey)],
+);
+
+// --- Pembayaran manual (ADR 0002) --------------------------------------------------------------
+
+/** Metode bayar yang diatur penyedia jasa dan ditampilkan ke pelanggan yang punya booking berDP. */
+export const paymentMethods = pgTable("payment_methods", {
+  id: id(),
+  workspaceId: workspaceId(),
+  kind: text("kind").notNull(), // bank_transfer | qris | ewallet | other
+  label: text("label").notNull(), // mis. "BCA", "QRIS Toko", "GoPay"
+  accountName: text("account_name"),
+  accountNumber: text("account_number"),
+  instructions: text("instructions"),
+  /** Gambar QRIS statis (berkas `files`, status ready). */
+  qrisFileId: uuid("qris_file_id").references(() => files.id),
+  active: boolean("active").notNull().default(true),
+  sortOrder: integer("sort_order").notNull().default(0),
+  createdAt: createdAt(),
+});
+
+/** Bukti pembayaran yang diunggah pelanggan; ditinjau staf. */
+export const paymentProofs = pgTable(
+  "payment_proofs",
+  {
+    id: id(),
+    workspaceId: workspaceId(),
+    paymentId: uuid("payment_id").notNull().references(() => payments.id),
+    fileId: uuid("file_id").notNull().references(() => files.id),
+    note: text("note"),
+    status: text("status").notNull().default("draft"), // draft | submitted | accepted | rejected
+    rejectReason: text("reject_reason"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }).notNull().defaultNow(),
+    reviewedBy: uuid("reviewed_by").references(() => users.id),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  },
+  (t) => [index("payment_proofs_payment").on(t.paymentId, t.submittedAt)],
+);
+
+/**
+ * Permintaan pelanggan atas booking (ADR 0004): pembatalan (wajib disetujui bila DP sudah dibayar, lalu refund manual
+ * dengan bukti) atau ubah jadwal (bila usaha memakai mode persetujuan). Penulisan pelanggan lewat role worker.
+ */
+export const bookingRequests = pgTable(
+  "booking_requests",
+  {
+    id: id(),
+    workspaceId: workspaceId(),
+    bookingId: uuid("booking_id").notNull().references(() => bookings.id),
+    kind: text("kind").notNull(), // cancel | reschedule
+    /** requested | approved | rejected | completed | withdrawn */
+    status: text("status").notNull().default("requested"),
+    reason: text("reason"),
+    /** Tujuan pengembalian dana (teks bebas dari pelanggan: bank/e-wallet, nomor, atas nama). */
+    refundAccount: text("refund_account"),
+    newStartsAt: timestamp("new_starts_at", { withTimezone: true }),
+    /** Diisi penyedia saat menyetujui pembatalan; ≤ nominal DP terbayar. */
+    refundAmountIdr: bigint("refund_amount_idr", { mode: "number" }),
+    decisionNote: text("decision_note"),
+    decidedBy: uuid("decided_by").references(() => users.id),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    refundFileId: uuid("refund_file_id").references(() => files.id),
+    refundedAt: timestamp("refunded_at", { withTimezone: true }),
+    /** Konfirmasi pelanggan setelah refund: received | not_received. */
+    customerAck: text("customer_ack"),
+    customerAckAt: timestamp("customer_ack_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("booking_requests_ws_status").on(t.workspaceId, t.status), index("booking_requests_booking").on(t.bookingId)],
+);
+
+/**
+ * Tagihan upgrade paket jadwalin.id (ADR 0005): usaha membayar ke rekening platform (transfer manual), mengunggah bukti,
+ * superadmin memverifikasi lalu paket aktif. Penulisan lewat role worker; usaha hanya membaca tagihannya sendiri.
+ */
+export const subscriptionInvoices = pgTable(
+  "subscription_invoices",
+  {
+    id: id(),
+    workspaceId: workspaceId(),
+    requestedBy: uuid("requested_by").notNull().references(() => users.id),
+    plan: text("plan").notNull(), // pro | bisnis
+    months: integer("months").notNull(), // 1 (bulanan) | 12 (tahunan)
+    amountIdr: bigint("amount_idr", { mode: "number" }).notNull(),
+    /** pending (menunggu bukti) | awaiting_verification | paid | rejected | cancelled */
+    status: text("status").notNull().default("pending"),
+    proofFileId: uuid("proof_file_id").references(() => files.id),
+    proofNote: text("proof_note"),
+    submittedAt: timestamp("submitted_at", { withTimezone: true }),
+    rejectReason: text("reject_reason"),
+    reviewedBy: uuid("reviewed_by").references(() => users.id),
+    reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index("subscription_invoices_ws").on(t.workspaceId, t.createdAt), index("subscription_invoices_status").on(t.status)],
+);
+
+// --- Sumber daya & reservasi (inti penjadwalan untuk barang/ruang/unit; dipakai modul sewa) ---------------------------
+
+/** Sesuatu yang bisa dipesan per rentang waktu, dengan `units` unit identik (mis. 3 motor yang sama). */
+export const resources = pgTable(
+  "resources",
+  {
+    id: id(),
+    workspaceId: workspaceId(),
+    name: text("name").notNull(),
+    units: integer("units").notNull().default(1),
+    active: boolean("active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [index("resources_ws").on(t.workspaceId)],
+);
+
+/**
+ * Pemesanan satu unit sumber daya untuk rentang `during`. Anti-bentrok ditegakkan di database (aturan #8):
+ * exclusion constraint per (resource, unit) untuk status yang menahan unit (pending, confirmed, active).
+ */
+export const reservations = pgTable(
+  "reservations",
+  {
+    id: id(),
+    workspaceId: workspaceId(),
+    resourceId: uuid("resource_id").notNull().references(() => resources.id),
+    unitNo: integer("unit_no").notNull(),
+    clientId: uuid("client_id").notNull().references(() => workspaceClients.id),
+    during: tstzrange("during").notNull(),
+    status: text("status").notNull().default("pending"), // pending | confirmed | active | completed | cancelled | rejected
+    /** SHA-256 token kelola (token mentah hanya ada di email). */
+    tokenHash: text("token_hash").notNull().unique(),
+    notes: text("notes"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("reservations_resource").on(t.resourceId)],
+);
+
+// --- Modul sewa: katalog produk dan pesanan -------------------------------------------------------------------------
+
+export const rentalProducts = pgTable(
+  "rental_products",
+  {
+    id: id(),
+    workspaceId: workspaceId(),
+    resourceId: uuid("resource_id").notNull().unique().references(() => resources.id),
+    name: text("name").notNull(),
+    category: text("category"),
+    description: text("description"),
+    pricePerDayIdr: bigint("price_per_day_idr", { mode: "number" }).notNull(),
+    /** Uang jaminan yang disiapkan penyewa saat ambil barang (informasi; jadwalin.id tidak memprosesnya). */
+    depositIdr: bigint("deposit_idr", { mode: "number" }).notNull().default(0),
+    /** DP (persen dari total sewa, 0–100) yang dibayar pelanggan langsung ke penyedia untuk mengunci pesanan; 0 = tanpa DP. */
+    dpPercent: integer("dp_percent").notNull().default(0),
+    imageFileId: uuid("image_file_id").references(() => files.id),
+    sortOrder: integer("sort_order").notNull().default(0),
+    active: boolean("active").notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [index("rental_products_ws").on(t.workspaceId, t.sortOrder)],
+);
+
+export const rentalOrders = pgTable(
+  "rental_orders",
+  {
+    id: id(),
+    workspaceId: workspaceId(),
+    reservationId: uuid("reservation_id").notNull().unique().references(() => reservations.id),
+    productId: uuid("product_id").notNull().references(() => rentalProducts.id),
+    /** Hari pertama dan terakhir sewa (tanggal kalender di zona usaha, keduanya termasuk). */
+    startDate: date("start_date").notNull(),
+    endDate: date("end_date").notNull(),
+    days: integer("days").notNull(),
+    pricePerDayIdr: bigint("price_per_day_idr", { mode: "number" }).notNull(),
+    totalIdr: bigint("total_idr", { mode: "number" }).notNull(),
+    /** DP yang ditagih saat pesanan dibuat (snapshot; 0 = tanpa DP). */
+    dpIdr: bigint("dp_idr", { mode: "number" }).notNull().default(0),
+    customerNote: text("customer_note"),
+    staffNote: text("staff_note"),
+    createdAt: createdAt(),
+  },
+  (t) => [index("rental_orders_ws").on(t.workspaceId, t.createdAt)],
 );

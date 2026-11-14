@@ -1,9 +1,10 @@
 import { schema, withTenant, type Db } from "@jadwalin/db";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { claimGuestRecords, claimGuestRecordsIn } from "./claim";
 import { AppError, isUniqueViolation } from "./errors";
+import { DEFAULT_FEATURES, parseFeatures, type Features } from "./features";
 import { normalizePhone } from "./phone";
 
 /** Mencegah pembuatan workspace massal (bahan baku penyalahgunaan email). */
@@ -16,7 +17,7 @@ export const RESERVED_SLUGS = new Set([
   "admin", "api", "app", "www", "daftar", "masuk", "keluar", "dashboard", "w", "jadwal-saya",
   "login", "logout", "signup", "register", "support", "help", "bantuan", "static", "assets",
   "syarat", "privasi", "refund", "harga", "tentang", "jadwalin", "billing", "settings", "pengaturan",
-  "undangan", "booking", "lupa-sandi", "reset-sandi", "tiket", "berkas", "jadwal", "p", "u", "_next", "favicon", "robots", "sitemap",
+  "undangan", "booking", "lupa-sandi", "reset-sandi", "tiket", "berkas", "jadwal", "sewa", "foto", "produk", "akun", "dpa", "penggunaan-wajar", "p", "u", "_next", "favicon", "robots", "sitemap",
 ]);
 
 export function validateSlug(input: string): string {
@@ -56,19 +57,27 @@ export async function audit(
 export async function createWorkspace(
   pool: pg.Pool,
   userId: string,
-  input: { name: string; slug: string },
+  input: { name: string; slug: string; features?: Features; /** Nomor WhatsApp usaha (tampil ke pelanggan). Wajib di antarmuka web; opsional di sini untuk tes/skrip. */ contactPhone?: string },
 ): Promise<{ id: string; slug: string }> {
   const name = input.name.trim();
   if (name.length < 2 || name.length > 80) {
-    throw new AppError("invalid_input", "Nama workspace harus 2–80 karakter.");
+    throw new AppError("invalid_input", "Nama harus 2–80 karakter.");
   }
   const slug = validateSlug(input.slug);
+  let contactPhone: string | null = null;
+  if (input.contactPhone !== undefined) {
+    try {
+      contactPhone = normalizePhone(input.contactPhone);
+    } catch {
+      throw new AppError("invalid_input", "Nomor WhatsApp usaha wajib diisi dengan benar (format 08xx atau +62xx).");
+    }
+  }
   const owned = (await listMyWorkspaces(pool, userId)).filter((w) => w.role === "owner").length;
-  if (owned >= MAX_OWNED_WORKSPACES) throw new AppError("invalid_input", `Satu akun maksimal memiliki ${MAX_OWNED_WORKSPACES} workspace. Hubungi kami bila butuh lebih.`);
+  if (owned >= MAX_OWNED_WORKSPACES) throw new AppError("invalid_input", `Satu akun maksimal memiliki ${MAX_OWNED_WORKSPACES} usaha. Hapus usaha yang tidak dipakai di Pengaturan, atau hubungi kami. Hubungi kami bila butuh lebih.`);
   const id = randomUUID();
   try {
     await withTenant(pool, { userId, workspaceId: id }, async (db) => {
-      await db.insert(schema.workspaces).values({ id, slug, name, ownerUserId: userId });
+      await db.insert(schema.workspaces).values({ id, slug, name, ownerUserId: userId, features: input.features ?? DEFAULT_FEATURES, contactPhone });
       await db.insert(schema.workspaceMembers).values({ workspaceId: id, userId, role: "owner" });
       await audit(db, { workspaceId: id, actorUserId: userId, action: "workspace.created", entityType: "workspace", entityId: id, diff: { slug, name } });
     });
@@ -84,12 +93,12 @@ export async function createWorkspace(
 export async function listMyWorkspaces(pool: pg.Pool, userId: string) {
   return withTenant(pool, { userId }, (db) =>
     db
-      .select({ id: schema.workspaces.id, slug: schema.workspaces.slug, name: schema.workspaces.name, timezone: schema.workspaces.timezone, role: schema.workspaceMembers.role })
+      .select({ id: schema.workspaces.id, slug: schema.workspaces.slug, name: schema.workspaces.name, timezone: schema.workspaces.timezone, features: schema.workspaces.features, role: schema.workspaceMembers.role })
       .from(schema.workspaceMembers)
       .innerJoin(schema.workspaces, eq(schema.workspaces.id, schema.workspaceMembers.workspaceId))
-      .where(eq(schema.workspaceMembers.userId, userId))
+      .where(and(eq(schema.workspaceMembers.userId, userId), isNull(schema.workspaces.deletedAt)))
       .orderBy(schema.workspaces.name),
-  );
+  ).then((rows) => rows.map((r) => ({ ...r, features: parseFeatures(r.features) })));
 }
 
 /**
@@ -108,23 +117,40 @@ export async function withWorkspace<T>(
       .select({ workspaceId: schema.workspaces.id, memberId: schema.workspaceMembers.id, role: schema.workspaceMembers.role })
       .from(schema.workspaceMembers)
       .innerJoin(schema.workspaces, eq(schema.workspaces.id, schema.workspaceMembers.workspaceId))
-      .where(and(eq(schema.workspaces.slug, actor.slug), eq(schema.workspaceMembers.userId, actor.userId)))
+      .where(and(eq(schema.workspaces.slug, actor.slug), eq(schema.workspaceMembers.userId, actor.userId), isNull(schema.workspaces.deletedAt)))
       .limit(1),
   );
   const access = found[0];
-  if (!access) throw new AppError("not_found", "Workspace tidak ditemukan.");
+  if (!access) throw new AppError("not_found", "Halaman tidak ditemukan.");
   if (ROLE_RANK[access.role] < ROLE_RANK[minRole]) {
     throw new AppError("forbidden", "Anda tidak punya izin untuk tindakan ini.");
   }
   return withTenant(pool, { userId: actor.userId, workspaceId: access.workspaceId }, (db) => fn(db, access));
 }
 
+/**
+ * Hapus halaman jadwal (soft delete, hanya pemilik). Data pembayaran/audit dipertahankan; halaman hilang dari semua daftar,
+ * link publik/booking mengembalikan not_found, dan slug dibebaskan. Konfirmasi: pemilik harus mengetik nama persis.
+ */
+export async function deleteWorkspace(pool: pg.Pool, actor: Actor, confirmName: string): Promise<void> {
+  await withWorkspace(pool, actor, "owner", async (db, access) => {
+    const [ws] = await db.select({ name: schema.workspaces.name, slug: schema.workspaces.slug }).from(schema.workspaces).where(eq(schema.workspaces.id, access.workspaceId)).limit(1);
+    if (!ws) throw new AppError("not_found", "Halaman tidak ditemukan.");
+    if (confirmName.trim() !== ws.name) throw new AppError("invalid_input", "Nama yang diketik tidak sama. Penghapusan dibatalkan.");
+    const freed = `hapus-${access.workspaceId.slice(0, 8)}-${ws.slug}`;
+    await db.update(schema.workspaces).set({ deletedAt: new Date(), slug: freed }).where(eq(schema.workspaces.id, access.workspaceId));
+    await audit(db, { workspaceId: access.workspaceId, actorUserId: actor.userId, action: "workspace.deleted", entityType: "workspace", entityId: access.workspaceId, diff: { slug: ws.slug, name: ws.name } });
+  });
+}
+
 export async function listMembers(pool: pg.Pool, actor: Actor) {
-  return withWorkspace(pool, actor, "staff", (db) =>
+  return withWorkspace(pool, actor, "staff", (db, access) =>
     db
       .select({ id: schema.workspaceMembers.id, userId: schema.users.id, name: schema.users.name, email: schema.users.email, role: schema.workspaceMembers.role })
       .from(schema.workspaceMembers)
       .innerJoin(schema.users, eq(schema.users.id, schema.workspaceMembers.userId))
+      // RLS juga memperlihatkan keanggotaan milik sendiri di workspace lain; filter eksplisit ke workspace aktif.
+      .where(eq(schema.workspaceMembers.workspaceId, access.workspaceId))
       .orderBy(schema.users.name),
   );
 }
@@ -174,7 +200,7 @@ export async function listMyClientWorkspaces(pool: pg.Pool, userId: string) {
       .select({ workspaceId: schema.workspaces.id, slug: schema.workspaces.slug, name: schema.workspaces.name })
       .from(schema.workspaceClients)
       .innerJoin(schema.workspaces, eq(schema.workspaces.id, schema.workspaceClients.workspaceId))
-      .where(eq(schema.workspaceClients.userId, userId)),
+      .where(and(eq(schema.workspaceClients.userId, userId), isNull(schema.workspaces.deletedAt))),
   );
 }
 
@@ -202,6 +228,7 @@ export interface ClientAccess extends WorkspaceRef {
   workspaceName: string;
   timezone: string;
   blocked: boolean;
+  features: Features;
 }
 
 export interface ClientAccessOptions {
@@ -224,7 +251,7 @@ export async function withClientAccess<T>(
   fn: (db: Db, access: ClientAccess) => Promise<T>,
 ): Promise<T> {
   const [ws] = await withTenant(pool, { userId, publicSlug: slug }, (db) =>
-    db.select({ id: schema.workspaces.id, name: schema.workspaces.name, timezone: schema.workspaces.timezone }).from(schema.workspaces).where(eq(schema.workspaces.slug, slug)).limit(1),
+    db.select({ id: schema.workspaces.id, name: schema.workspaces.name, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug), isNull(schema.workspaces.deletedAt))).limit(1),
   );
   if (!ws) throw new AppError("not_found", "Halaman tidak ditemukan.");
 
@@ -250,8 +277,8 @@ export async function withClientAccess<T>(
       }
       [client] = await db.select().from(schema.workspaceClients).where(eq(schema.workspaceClients.userId, userId)).limit(1);
     }
-    if (opts.forWrite && client!.blocked) throw new AppError("forbidden", "Akun Anda tidak dapat mengirim pesan ke workspace ini.");
-    return fn(db, { workspaceId: ws.id, userId, clientId: client!.id, workspaceName: ws.name, timezone: ws.timezone, blocked: client!.blocked });
+    if (opts.forWrite && client!.blocked) throw new AppError("forbidden", "Akun Anda tidak dapat mengirim pesan ke halaman ini.");
+    return fn(db, { workspaceId: ws.id, userId, clientId: client!.id, workspaceName: ws.name, timezone: ws.timezone, blocked: client!.blocked, features: parseFeatures(ws.features) });
   });
 }
 
@@ -260,7 +287,7 @@ const NIL_UUID = "00000000-0000-0000-0000-000000000000";
 /** Halaman publik jadwalin.id/<slug>: hanya nama dan zona waktu; berlaku untuk pengunjung yang belum masuk. */
 export async function getPublicWorkspace(pool: pg.Pool, slug: string, userId?: string) {
   const [ws] = await withTenant(pool, { userId: userId ?? NIL_UUID, publicSlug: slug.toLowerCase() }, (db) =>
-    db.select({ name: schema.workspaces.name, slug: schema.workspaces.slug, timezone: schema.workspaces.timezone }).from(schema.workspaces).where(eq(schema.workspaces.slug, slug.toLowerCase())).limit(1),
+    db.select({ name: schema.workspaces.name, slug: schema.workspaces.slug, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug.toLowerCase()), isNull(schema.workspaces.deletedAt))).limit(1),
   );
-  return ws ?? null;
+  return ws ? { ...ws, features: parseFeatures(ws.features) } : null;
 }

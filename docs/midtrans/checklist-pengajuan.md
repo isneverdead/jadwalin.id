@@ -1,3 +1,5 @@
+> **TIDAK DIPAKAI (2026-11-08):** pemilik memutuskan tidak memakai payment gateway (docs/adr/0002-pembayaran-manual.md). Dokumen ini disimpan sebagai arsip; jangan dikirim.
+
 # Checklist pengajuan aplikasi baru ke Midtrans
 
 Daftar umum yang biasa diminta; daftar pasti harus dikonfirmasi ke Midtrans. Status per 2026-11-08.

@@ -1,0 +1,25 @@
+{
+  "SLUG": "demo-pajak-rahayu",
+  "PASSWORD": "Demo-Kantor-Rahayu-2026!",
+  "users": {
+    "owner": [
+      "Rahayu Wulandari",
+      "rahayu@kantorrahayu.id"
+    ],
+    "staf": [
+      "Bagas Pratama",
+      "bagas@kantorrahayu.id"
+    ],
+    "dewi": [
+      "Dewi Lestari",
+      "dewi.lestari@gmail.com"
+    ],
+    "hendra": [
+      "Hendra Kusuma",
+      "hendra.kusuma@outlook.com"
+    ]
+  },
+  "dewiUrl": "http://localhost:3000/jadwal-saya/demo-pajak-rahayu/tiket/1",
+  "hendraUrl": "http://localhost:3000/jadwal-saya/demo-pajak-rahayu/tiket/2",
+  "manage": "http://localhost:3000/booking/-rFXOQr3Blyj6jHpYSqOsH-QVPtzX60Q"
+}

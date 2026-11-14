@@ -60,7 +60,13 @@ Prosedur hapus akun: (1) verifikasi identitas lewat email terdaftar; (2) pastika
 ## 6b. Halaman legal
 `/syarat /privasi /refund /dpa /penggunaan-wajar /tentang` masih **DRAF**. Sebelum launch: tinjau penasihat hukum, isi identitas usaha di `/tentang` (placeholder `[ISI SEBELUM LAUNCH]`), naikkan `LEGAL_VERSION` (`packages/core/src/legal.ts`) bila isi berubah material.
 
-## 6c. Pembayaran (M7)
+## 6c. Pembayaran manual (ADR 0002)
+- Tidak ada konfigurasi gateway: `PAYMENT_PROVIDER` kosong = manual. Penyedia jasa mengatur metode bayar di menu **Pembayaran** (`/w/<slug>/pembayaran`); jenis pertemuan berDP tidak dapat dipesan bila tidak ada metode aktif.
+- Bukti pembayaran berisi data pelanggan: hanya staf workspace yang dapat mengunduhnya. Hapus berkas bukti > 90 hari untuk pembayaran yang sudah final (pekerjaan penghapusan terjadwal belum ada; lakukan manual: `SELECT f.id FROM files f JOIN payment_proofs pr ON pr.file_id = f.id JOIN payments p ON p.id = pr.payment_id WHERE p.status IN ('paid','refunded','expired','cancelled') AND pr.reviewed_at < now() - interval '90 days'`).
+- Bukti palsu adalah risiko penyedia jasa; jadwalin tidak memverifikasi keaslian transfer (tercantum di Syarat Layanan).
+
+### (Nonaktif) Gateway — ADR 0001
+(Bagian berikut berlaku hanya bila gateway diaktifkan kembali.)
 - Aktifkan dengan `PAYMENT_PROVIDER=midtrans`, `MIDTRANS_SERVER_KEY`, `MIDTRANS_ENV` (kunci sandbox berawalan `SB-` hanya cocok dengan `sandbox`; start gagal bila tidak cocok) di **web dan worker** (worker juga butuh `BETTER_AUTH_URL`). Kosong = pembayaran mati dan jenis berDP ditolak.
 - Daftarkan URL notifikasi di dashboard Midtrans: `https://<domain>/api/webhooks/payments`. Endpoint membalas 400 untuk tanda tangan salah, 200 untuk sisanya (duplikat/diabaikan), 500 untuk galat sementara (penyedia mencoba ulang).
 - **Mengaktifkan penyedia jasa (operator, setelah KYC/ketentuan penyedia dipenuhi):** `INSERT INTO payment_accounts (workspace_id, provider, provider_account_id, kyc_status) VALUES ('<ws>', 'midtrans', '<merchant id>', 'verified');` Staf tidak dapat mengesahkan sendiri.

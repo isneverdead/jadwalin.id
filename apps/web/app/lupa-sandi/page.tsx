@@ -27,16 +27,16 @@ export default function LupaSandiPage() {
 
   if (done) {
     return (
-      <>
+      <div className="auth-card">
         <h1>Cek email Anda</h1>
         <p>Jika email itu terdaftar, kami telah mengirim tautan untuk mengatur ulang kata sandi. Tautan berlaku 1 jam.</p>
         <p><Link href="/masuk">Kembali ke halaman masuk</Link></p>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="auth-card">
       <h1>Lupa kata sandi</h1>
       <p>Masukkan email akun Anda. Kami kirim tautan untuk mengatur ulang kata sandi.</p>
       <form onSubmit={onSubmit}>
@@ -45,6 +45,6 @@ export default function LupaSandiPage() {
         <button disabled={busy}>{busy ? "Memproses…" : "Kirim tautan"}</button>
       </form>
       <small><Link href="/masuk">Kembali</Link></small>
-    </>
+    </div>
   );
 }

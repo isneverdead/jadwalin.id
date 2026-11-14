@@ -8,6 +8,8 @@ const envSchema = z.object({
 const webEnvSchema = envSchema.extend({
   BETTER_AUTH_SECRET: z.string().min(32, "minimal 32 karakter"),
   BETTER_AUTH_URL: z.string().url(),
+  /** Email superadmin platform, dipisah koma (ADR 0005). Hanya akun dengan email TERVERIFIKASI yang cocok boleh membuka /admin. */
+  SUPERADMIN_EMAILS: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -20,6 +22,11 @@ export function loadWebEnv(source: Record<string, string | undefined> = process.
     throw new Error(`Konfigurasi env tidak valid: ${keys}`);
   }
   return parsed.data;
+}
+
+/** Daftar email superadmin (huruf kecil, tanpa duplikat). Kosong = tidak ada superadmin. */
+export function loadSuperadmins(source: Record<string, string | undefined> = process.env): string[] {
+  return [...new Set((source.SUPERADMIN_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean))];
 }
 
 /** Validasi env saat start; gagal cepat dengan pesan jelas, tanpa mencetak nilai secret. */
@@ -148,20 +155,20 @@ export function loadBackupEnv(source: Record<string, string | undefined> = proce
 // --- Pembayaran (ADR 0001) ---------------------------------------------------------------------------
 
 const paymentSchema = z.object({
-  PAYMENT_PROVIDER: z.enum(["fake", "midtrans"]).optional(),
+  PAYMENT_PROVIDER: z.enum(["manual", "fake", "midtrans"]).optional(),
   PAYMENT_FAKE_SECRET: z.string().min(16).optional(),
   MIDTRANS_SERVER_KEY: z.string().min(10).optional(),
   MIDTRANS_ENV: z.enum(["sandbox", "production"]).default("sandbox"),
   NODE_ENV: z.string().optional(),
 });
-export type PaymentEnv = { provider: "fake"; fakeSecret: string } | { provider: "midtrans"; serverKey: string; environment: "sandbox" | "production" };
+export type PaymentEnv = { provider: "manual" } | { provider: "fake"; fakeSecret: string } | { provider: "midtrans"; serverKey: string; environment: "sandbox" | "production" };
 
-/** null = pembayaran dimatikan (jenis pertemuan berDP ditolak, gagal tertutup). Penyedia 'fake' dilarang di produksi. */
-export function loadPaymentEnv(source: Record<string, string | undefined> = process.env): PaymentEnv | null {
+/** Bawaan: pembayaran MANUAL (ADR 0002; penyedia jasa mengatur metode bayar sendiri). Gateway hanya bila diaktifkan eksplisit; 'fake' dilarang di produksi. */
+export function loadPaymentEnv(source: Record<string, string | undefined> = process.env): PaymentEnv {
   const parsed = paymentSchema.safeParse(source);
   if (!parsed.success) throw new Error(`Konfigurasi pembayaran tidak valid: ${parsed.error.issues.map((i) => i.path.join(".")).join(", ")}`);
   const e = parsed.data;
-  if (!e.PAYMENT_PROVIDER) return null;
+  if (!e.PAYMENT_PROVIDER || e.PAYMENT_PROVIDER === "manual") return { provider: "manual" };
   if (e.PAYMENT_PROVIDER === "fake") {
     if (e.NODE_ENV === "production" && source.ALLOW_FAKE_PAYMENTS !== "true") throw new Error("Konfigurasi pembayaran tidak valid: penyedia 'fake' tidak boleh dipakai di produksi.");
     if (!e.PAYMENT_FAKE_SECRET) throw new Error("Konfigurasi pembayaran tidak valid: wajib diisi: PAYMENT_FAKE_SECRET");

@@ -176,6 +176,111 @@
       "when": 1794120012157,
       "tag": "0024_worker_meeting_types_read",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794123550858,
+      "tag": "0025_manual_payments",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794123552074,
+      "tag": "0026_manual_payments_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1794123790587,
+      "tag": "0027_manual_payments_hardening",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1794153071641,
+      "tag": "0028_workspace_features",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1794157644092,
+      "tag": "0029_rental",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1794157645858,
+      "tag": "0030_rental_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1794157903135,
+      "tag": "0031_rental_token_access",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1794193030574,
+      "tag": "0032_workspace_soft_delete",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1794194421049,
+      "tag": "0033_rental_dp",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1794195586661,
+      "tag": "0034_rental_workspaces_no_hourly",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1794682987216,
+      "tag": "0035_booking_changes",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1794682988216,
+      "tag": "0036_booking_token_rotate",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1794682989216,
+      "tag": "0037_booking_worker_guard",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1794682990216,
+      "tag": "0038_workspace_contact_phone",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1794686723924,
+      "tag": "0039_platform_subscription",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ export type ErrorCode =
   | "slot_unavailable"
   | "invalid_input"
   | "payment_unavailable"
+  | "feature_disabled"
   | "payment_failed";
 
 /** Error yang aman ditampilkan ke pengguna (pesan Bahasa Indonesia). */

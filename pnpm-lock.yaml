@@ -35,6 +35,9 @@ importers:
       '@jadwalin/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@jadwalin/module-rental':
+        specifier: workspace:*
+        version: link:../../packages/modules/rental
       '@jadwalin/module-tickets':
         specifier: workspace:*
         version: link:../../packages/modules/tickets
@@ -102,6 +105,9 @@ importers:
       '@jadwalin/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@jadwalin/module-tickets':
+        specifier: workspace:*
+        version: link:../../packages/modules/tickets
       bullmq:
         specifier: ^5.34.0
         version: 5.81.5
@@ -244,6 +250,37 @@ importers:
       tsx:
         specifier: ^4.19.2
         version: 4.23.15
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
+      vite:
+        specifier: ^7.3.7
+        version: 7.3.7(@types/node@22.20.5)(tsx@4.23.15)
+      vitest:
+        specifier: ^4.1.11
+        version: 4.1.12(@opentelemetry/api@1.9.1)(@types/node@22.20.5)(vite@7.3.7(@types/node@22.20.5)(tsx@4.23.15))
+
+  packages/modules/rental:
+    dependencies:
+      '@jadwalin/core':
+        specifier: workspace:*
+        version: link:../../core
+      '@jadwalin/db':
+        specifier: workspace:*
+        version: link:../../db
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.4(@opentelemetry/api@1.9.1)(@types/pg@8.23.1)(gel@2.2.1)(kysely@0.29.8)(pg@8.23.1)
+      pg:
+        specifier: ^8.13.1
+        version: 8.23.1
+    devDependencies:
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.5
+      '@types/pg':
+        specifier: ^8.11.10
+        version: 8.23.1
       typescript:
         specifier: ^5.7.2
         version: 5.9.3

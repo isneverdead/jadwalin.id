@@ -59,38 +59,53 @@ async function newPage(browser: Browser) {
 
 /** Nilai semua opsi slot yang ditawarkan halaman publik. */
 async function offered(page: Page): Promise<string[]> {
-  return page.locator('select[name="startsAt"] option:not([disabled])').evaluateAll((els) => els.map((e) => (e as HTMLOptionElement).value));
+  const raw = (await page.locator(".picker").getAttribute("data-slots")) ?? "";
+  return raw ? raw.split(",") : [];
 }
 
-async function fillGuestForm(page: Page, startsAt: string, mail: string, topic: string) {
-  await page.locator('select[name="startsAt"]').selectOption(startsAt);
+/** Memilih slot lewat kalender seperti pengguna: ganti bulan bila perlu, klik tanggal, klik jam (zona WIB). */
+async function chooseSlot(page: Page, iso: string) {
+  const local = new Date(Date.parse(iso) + 7 * 3600_000);
+  const day = String(local.getUTCDate());
+  const time = `${String(local.getUTCHours()).padStart(2, "0")}:${String(local.getUTCMinutes()).padStart(2, "0")}`;
+  const dayBtn = page.locator(".cal-day.has", { hasText: new RegExp(`^${day}$`) });
+  for (let i = 0; i < 8 && !(await dayBtn.count()); i++) await page.getByRole("button", { name: "Bulan berikutnya" }).click();
+  await dayBtn.click();
+  await page.getByRole("radio", { name: time, exact: true }).click();
+  await expect(page.locator('input[name="startsAt"]')).toHaveValue(iso);
+}
+
+async function fillGuestForm(page: Page, startsAt: string, topic: string) {
+  await chooseSlot(page, startsAt);
   await page.getByLabel("Nama", { exact: true }).fill("Tamu E2E");
-  await page.getByLabel(/^Email/).fill(mail);
   await page.getByLabel(/^Nomor HP/).fill("0812-5550-9999");
   await page.getByLabel("Topik").fill(topic);
   await page.getByLabel(/^Catatan/).fill("Mohon siapkan ringkasan.");
   await page.getByLabel(/Saya telah membaca/).check();
 }
 
-test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomatis, ubah jadwal, batal membebaskan slot", async ({ browser }) => {
+test("tamu (hanya nomor HP, tanpa email) memesan lewat link publik: slot hilang, tiket otomatis, ubah jadwal, batal membebaskan slot", async ({ browser }) => {
   // ===== Pemilik menyiapkan workspace, ketersediaan, dan jenis pertemuan =====
   const owner = await newPage(browser);
   await register(owner, "Pemilik Booking", email("owner"));
-  await owner.getByLabel("Nama bisnis").fill("Praktik Booking E2E");
-  await owner.getByLabel(/^Nama link/).fill(slug);
-  await owner.getByRole("button", { name: "Buat workspace" }).click();
-  await expect(owner.getByRole("heading", { name: "Praktik Booking E2E" })).toBeVisible();
+  await owner.goto("/dashboard/bisnis-baru");
+  await owner.getByText("Mulai dari kosong", { exact: true }).click();
+  await owner.locator('input[name="name"]').fill("Praktik Booking E2E");
+  await owner.locator('input[name="slug"]').fill(slug);
+  await owner.getByRole("button", { name: "Buat halaman jadwal saya" }).click();
+  await expect(owner.locator(".side-biz").getByText("Praktik Booking E2E")).toBeVisible();
 
   await owner.goto(`/w/${slug}/jadwal`);
   for (const day of ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]) await owner.getByLabel(day, { exact: true }).check();
-  await clickAndSettle(owner, "Simpan jam rutin");
+  await clickAndSettle(owner, "Simpan jam kerja");
   await expect(owner.getByText("Pratinjau slot tersedia")).toBeVisible();
-  await owner.getByLabel("Judul").fill("Konsultasi Publik");
-  await owner.getByLabel("Kode (untuk link)").fill("konsultasi");
-  await owner.getByLabel("Link / nomor / alamat").fill("https://meet.example.com/e2e-publik");
-  await clickAndSettle(owner, "Tambah jenis pertemuan");
+  await owner.getByText("+ Tambah layanan baru").click();
+  await owner.getByLabel("Nama layanan").last().fill("Konsultasi Publik");
+  await owner.getByLabel("Kode untuk link").fill("konsultasi");
+  await owner.getByLabel("Link / nomor / alamat").last().fill("https://meet.example.com/e2e-publik");
+  await clickAndSettle(owner, "Tambah layanan");
   await expect(owner.getByText(`jadwalin.id/${slug}/konsultasi`)).toBeVisible();
-  await expect(owner.getByText("BELUM ADA HOST")).toHaveCount(0); // pembuatnya otomatis menjadi host
+  await expect(owner.getByText("Belum ada yang melayani layanan ini")).toHaveCount(0); // pembuatnya otomatis menjadi host
 
   // ===== Header keamanan terpasang di halaman publik dan halaman bertoken =====
   const hdr = (await owner.request.get("/masuk")).headers();
@@ -122,7 +137,7 @@ test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomati
   const guest = await newPage(browser);
   await guest.goto(`/${slug}`);
   await expect(guest.getByRole("heading", { name: "Praktik Booking E2E" })).toBeVisible();
-  await guest.getByRole("link", { name: /Pilih waktu/ }).click();
+  await guest.getByRole("link", { name: /Konsultasi Publik/ }).click();
   await expect(guest.getByRole("heading", { name: "Konsultasi Publik" })).toBeVisible();
   const slots = await offered(guest);
   expect(slots.length).toBeGreaterThan(10);
@@ -130,8 +145,7 @@ test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomati
   const [first, second, third] = [slots[80]!, slots[81]!, slots[82]!];
 
   // Perlindungan bot: tanpa token Turnstile, pemesanan DITOLAK dan tidak ada booking tercatat.
-  const guestEmail = email("tamu");
-  await fillGuestForm(guest, first, guestEmail, "Konsultasi SPT tamu");
+  await fillGuestForm(guest, first, "Konsultasi SPT tamu");
   await guest.evaluate(() => document.querySelectorAll('[name="cf-turnstile-response"]').forEach((e) => e.remove()));
   await guest.getByRole("button", { name: "Pesan jadwal" }).click();
   await expect(guest.getByText(/Verifikasi keamanan gagal/)).toBeVisible();
@@ -139,7 +153,7 @@ test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomati
 
   // Honeypot: bot yang mengisi kolom tersembunyi diarahkan pergi tanpa booking.
   await guest.reload();
-  await fillGuestForm(guest, first, guestEmail, "Konsultasi SPT tamu");
+  await fillGuestForm(guest, first, "Konsultasi SPT tamu");
   await guest.evaluate(() => { (document.querySelector('[name="website"]') as HTMLInputElement).value = "http://spam.example"; });
   await expect(guest.locator('input[name="cf-turnstile-response"]')).not.toHaveValue("", { timeout: 30_000 });
   await guest.getByRole("button", { name: "Pesan jadwal" }).click();
@@ -148,7 +162,7 @@ test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomati
 
   // ===== Pemesanan sungguhan (Turnstile uji Cloudflare lolos) =====
   await guest.goto(`/${slug}/konsultasi`);
-  await fillGuestForm(guest, first, guestEmail, "Konsultasi SPT tamu");
+  await fillGuestForm(guest, first, "Konsultasi SPT tamu");
   await expect(guest.locator('input[name="cf-turnstile-response"]')).not.toHaveValue("", { timeout: 30_000 });
   await guest.getByRole("button", { name: "Pesan jadwal" }).click();
   await expect(guest.getByRole("heading", { name: "Booking terkonfirmasi" })).toBeVisible();
@@ -164,11 +178,9 @@ test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomati
   expect(afterBooking).not.toContain(first);
   expect(afterBooking).toContain(second);
 
-  // ===== Email: konfirmasi + pengingat untuk tamu (token ada di tautan), pemberitahuan untuk host =====
+  // ===== Tamu hanya memakai nomor HP: tidak ada email ke tamu; pemberitahuan untuk host tetap lewat email =====
   const ws = (await pool.query(`SELECT id FROM workspaces WHERE slug = $1`, [slug])).rows[0].id;
-  const guestMails = (await pool.query(`SELECT template, payload->>'subject' AS subject, payload->>'url' AS url, status FROM notification_outbox WHERE recipient = $1 ORDER BY send_at`, [guestEmail])).rows;
-  expect(guestMails.some((m) => m.subject.startsWith("Booking terkonfirmasi") && m.url === `http://localhost:3100/booking/${token}`)).toBe(true);
-  expect(guestMails.filter((m) => m.subject.startsWith("Pengingat:")).length).toBe(2); // 24 jam dan 1 jam sebelum
+  expect((await pool.query(`SELECT count(*)::int AS n FROM notification_outbox WHERE workspace_id = $1 AND payload->>'subject' LIKE 'Booking terkonfirmasi%'`, [ws])).rows[0].n).toBe(0);
   const hostMails = (await pool.query(`SELECT payload->>'subject' AS subject FROM notification_outbox WHERE recipient = $1`, [email("owner")])).rows;
   expect(hostMails.some((m) => m.subject?.startsWith("Booking baru: Tamu E2E"))).toBe(true);
   // DB hanya menyimpan hash token
@@ -179,7 +191,7 @@ test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomati
   await owner.getByRole("link", { name: /Booking: Konsultasi Publik — Konsultasi SPT tamu/ }).click();
   await expect(owner.getByRole("heading", { name: /Booking: Konsultasi Publik/ })).toBeVisible();
   await expect(owner.getByText("ditangani Pemilik Booking")).toBeVisible();
-  await expect(owner.getByText(/Konsultasi Publik — .*terjadwal/)).toBeVisible();
+  await expect(owner.getByText(/terjadwal · /)).toBeVisible();
   const ticketUrl = owner.url();
 
   // ===== Tamu mengubah jadwal =====
@@ -188,7 +200,7 @@ test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomati
   const options = await offered(guest);
   expect(options).toContain(first); // jadwal sendiri tetap bisa dipilih
   expect(options).toContain(third);
-  await guest.locator('select[name="startsAt"]').selectOption(third);
+  await chooseSlot(guest, third);
   await guest.getByRole("button", { name: "Simpan jadwal baru" }).click();
   await expect(guest.getByText("Jadwal Anda sudah diperbarui.")).toBeVisible();
   await other.reload();
@@ -196,25 +208,14 @@ test("tamu memesan lewat link publik: slot hilang, email terkirim, tiket otomati
   expect(afterMove).toContain(first); // slot lama bebas
   expect(afterMove).not.toContain(third); // slot baru terpakai
 
-  // ===== Tamu mendaftar dengan email yang sama (terverifikasi): tiketnya otomatis tertaut ke akunnya =====
-  const claimer = await newPage(browser);
-  await register(claimer, "Tamu E2E", guestEmail);
-  await claimer.goto("/jadwal-saya");
-  await claimer.getByRole("link", { name: "Praktik Booking E2E" }).click();
-  await claimer.getByRole("link", { name: /Booking: Konsultasi Publik — Konsultasi SPT tamu/ }).click();
-  await expect(claimer.getByRole("heading", { name: /Booking: Konsultasi Publik/ })).toBeVisible();
-  await expect(claimer.getByRole("heading", { name: "Meeting", level: 2 })).toBeVisible(); // meeting tamu ikut tertaut ke akunnya
-
   // ===== Tamu membatalkan: slot bebas lagi, pengingat dibatalkan, riwayat tiket mencatatnya =====
   await guest.goto(manageUrl);
   await guest.getByRole("button", { name: "Batalkan booking" }).click();
+  await guest.getByRole("button", { name: "Ya, lanjutkan" }).click(); // dialog konfirmasi di dalam halaman
   await expect(guest.getByRole("heading", { name: "Booking dibatalkan" })).toBeVisible();
   await other.reload();
   expect(await offered(other)).toContain(third); // slot yang dibatalkan kembali tersedia
 
-  const mails = (await pool.query(`SELECT payload->>'subject' AS subject, status FROM notification_outbox WHERE recipient = $1`, [guestEmail])).rows;
-  expect(mails.filter((m) => m.status === "cancelled").length).toBeGreaterThanOrEqual(1); // pengingat dibatalkan
-  expect(mails.some((m) => m.subject?.startsWith("Booking dibatalkan"))).toBe(true);
   await owner.goto(ticketUrl);
   await expect(owner.getByText(/membatalkan meeting/)).toBeVisible();
   const events = (await pool.query(`SELECT kind, to_value FROM ticket_events WHERE workspace_id = $1 ORDER BY created_at`, [ws])).rows;

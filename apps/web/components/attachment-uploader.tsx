@@ -51,7 +51,7 @@ export function AttachmentUploader({
 
   return (
     <form ref={form} onSubmit={submit}>
-      <label>Berkas (PDF, gambar, Office, teks, ZIP; maks 10 MB)<input name="file" type="file" required /></label>
+      <label>Berkas<small>PDF, gambar, Office, teks, ZIP · maks 10 MB</small><input name="file" type="file" required /></label>
       <label>Catatan konteks (opsional)<input name="contextNote" maxLength={500} placeholder="Mis. “Bukti transfer 3 Nov”" /></label>
       {allowHidden && <label style={{ display: "flex", gap: 8, alignItems: "center" }}><input name="hidden" type="checkbox" style={{ width: 18, height: 18 }} /> Sembunyikan dari klien</label>}
       {status && <p role="status">{status}</p>}

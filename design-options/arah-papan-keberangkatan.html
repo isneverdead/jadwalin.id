@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Arah Papan Keberangkatan — jadwalin.id</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --page:#eef2f9; --surface:#ffffff; --ink:#0a1630; --muted:#4f5e7c; --line:#cbd6ea; --line-2:#aebfdc;
+  --blue:#1f4fd8; --blue-hover:#173db0; --on-blue:#ffffff;
+  --font:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif; --display:"Barlow Condensed","Barlow",system-ui,sans-serif;
+  --shadow:0 24px 48px -28px rgb(10 22 48/.55);
+  /* papan: warna tetap di kedua mode, karena papan adalah benda fisik */
+  --bd:#0b2a6a; --bd-edge:#061b47; --fl-top:#123a8f; --fl-bot:#0e3180; --tx:#f5f7ff; --dim:#8da2d6; --amber:#ffc24a; --green:#5ce0a0; --red:#ff7b6b;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--page:#060d1f;--surface:#0c1630;--ink:#eaf0ff;--muted:#a3b0cf;--line:#1d2c52;--line-2:#2e4175;--blue:#7d9dff;--blue-hover:#a2b9ff;--on-blue:#06122e;--shadow:0 24px 48px -28px rgb(0 0 0/.9)}}
+:root[data-theme=dark]{--page:#060d1f;--surface:#0c1630;--ink:#eaf0ff;--muted:#a3b0cf;--line:#1d2c52;--line-2:#2e4175;--blue:#7d9dff;--blue-hover:#a2b9ff;--on-blue:#06122e;--shadow:0 24px 48px -28px rgb(0 0 0/.9)}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font:400 1rem/1.55 var(--font);overflow-x:hidden;transition:background-color .4s,color .4s}
+h1,h2,h3,p{margin:0}a{color:inherit}:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+.wrap{max-width:1180px;margin:0 auto;padding:0 18px}
+.bar{border-bottom:1px solid var(--line)}.bar .wrap{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:60px;flex-wrap:wrap;padding-block:6px}
+.brand{display:inline-flex;align-items:center;min-height:44px;font:700 1.45rem var(--display);letter-spacing:.01em;text-decoration:none}
+.seg{display:inline-flex;gap:2px;border:1px solid var(--line-2);border-radius:8px;padding:3px}.seg button{all:unset;cursor:pointer;min-height:44px;min-width:44px;padding:0 14px;display:grid;place-items:center;border-radius:6px;font-weight:600;font-size:.9rem;color:var(--muted)}.seg button[aria-pressed=true]{background:var(--blue);color:var(--on-blue)}
+.btn{all:unset;box-sizing:border-box;cursor:pointer;min-height:48px;padding:0 22px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1.5px solid var(--ink);font-weight:700;transition:transform .2s,background .2s}.btn:hover{transform:translateY(-2px)}.btn:active{transform:translateY(1px)}
+.btn.pri{background:var(--blue);border-color:var(--blue);color:var(--on-blue)}.btn.pri:hover{background:var(--blue-hover)}.btn[disabled]{opacity:.45;pointer-events:none}
+.hero{padding:52px 0 28px}
+.hero h1{font:700 clamp(3.4rem,13vw,9rem)/.88 var(--display);letter-spacing:-.005em;max-width:12ch;margin-bottom:22px}
+.hero .lead{font-size:1.15rem;color:var(--muted);max-width:50ch;margin-bottom:24px}.cta{display:flex;gap:12px;flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:40px 0 14px}.chip{all:unset;cursor:pointer;min-height:44px;padding:0 16px;display:inline-flex;align-items:center;border-radius:8px;border:1.5px solid var(--line-2);font-weight:600;font-size:.92rem;transition:all .25s}.chip:hover{border-color:var(--ink)}.chip.on{background:var(--ink);color:var(--page);border-color:var(--ink)}
+/* papan */
+.board{container-type:inline-size;background:var(--bd);border:2px solid var(--bd-edge);border-radius:14px;padding:3cqw 3cqw 2.4cqw;box-shadow:var(--shadow);color:var(--tx);position:relative}
+.board::before{content:"";position:absolute;inset:6px;border:1px solid rgb(255 255 255/.09);border-radius:9px;pointer-events:none}
+.bh{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);font-weight:600;margin-bottom:1.8cqw}
+.bh .bt{font-size:clamp(14px,4.2cqw,28px);letter-spacing:.06em;text-transform:uppercase}.bh .clk{font-size:clamp(16px,5cqw,34px);color:var(--amber);font-variant-numeric:tabular-nums;font-weight:700}
+.rw{display:grid;grid-template-columns:5fr 13fr 11fr;gap:1.4cqw;margin-bottom:1.1cqw;align-items:center}
+.rw .who,.rw .loc{display:none}
+.fld{display:grid;grid-template-columns:repeat(var(--n),1fr);gap:1px}
+.fl{font:600 clamp(11px,5.2cqw,27px)/1.5 var(--display);text-align:center;background:linear-gradient(var(--fl-top) 50%,var(--fl-bot) 50%);border-radius:2px;position:relative;height:1.5em;overflow:hidden;color:var(--tx);text-transform:uppercase}
+.fl::after{content:"";position:absolute;left:0;right:0;top:50%;height:1px;background:rgb(0 0 0/.5)}
+.fl.f{animation:flip .11s steps(2)}@keyframes flip{50%{transform:scaleY(.1)}}
+.ok .fl{color:var(--green)}.wait .fl{color:var(--amber)}.bad .fl{color:var(--red)}.dim .fl{color:var(--dim)}
+.th{font:500 clamp(9px,2.6cqw,15px)/1 var(--display);color:var(--dim);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1.2cqw}
+.th.rw .who,.th.rw .loc{display:none}
+@container (min-width:640px){
+ .rw{grid-template-columns:5fr 14fr 10fr 4fr 11fr;gap:1cqw;margin-bottom:.8cqw}.rw .who,.rw .loc{display:grid}
+ .th.rw .who,.th.rw .loc{display:block}.fl{font-size:clamp(11px,2.9cqw,27px)}}
+.foot{display:flex;justify-content:space-between;gap:12px;margin-top:1.6cqw;font:500 clamp(10px,2.6cqw,14px) var(--display);color:var(--dim);letter-spacing:.05em;text-transform:uppercase;flex-wrap:wrap}
+/* sections */
+.sec{border-top:1px solid var(--line);margin-top:72px;padding:72px 0}
+.sec h2{font:700 clamp(2.5rem,8vw,4.8rem)/.92 var(--display);max-width:13ch;margin-bottom:16px}
+.sub{color:var(--muted);max-width:50ch;margin-bottom:20px}
+.two{display:grid;gap:44px;align-items:start}@media(min-width:900px){.two{grid-template-columns:1fr 1fr;gap:64px}}
+.phone{max-width:390px;width:100%;margin:0 auto;background:var(--page);border:1px solid var(--line-2);border-radius:28px;overflow:hidden;box-shadow:var(--shadow)}
+.ph{padding:18px}.ph h3{font:700 1.7rem/1.05 var(--display);margin-bottom:2px}.muted{color:var(--muted)}
+.days{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin:14px 0}.day{all:unset;cursor:pointer;min-height:56px;display:grid;place-items:center;align-content:center;border:1.5px solid var(--line-2);border-radius:8px;background:var(--surface);font:700 1.3rem/1 var(--display);transition:all .2s}.day small{font:500 .72rem var(--font);color:var(--muted)}.day[disabled]{opacity:.4;cursor:not-allowed}.day.on{background:var(--ink);border-color:var(--ink);color:var(--page)}.day.on small{color:inherit}
+.slots{display:grid;gap:6px;margin-bottom:14px}.sl{all:unset;box-sizing:border-box;cursor:pointer;min-height:52px;display:grid;grid-template-columns:70px 1fr auto;align-items:center;gap:8px;padding:0 14px;background:var(--bd);border:2px solid var(--bd-edge);border-radius:8px;color:var(--tx);font:600 1.15rem var(--display);text-transform:uppercase;transition:transform .2s}
+.sl:hover{transform:translateX(4px)}.sl .t{color:var(--amber);font-variant-numeric:tabular-nums}.sl .s{font-size:.95rem;color:var(--green);letter-spacing:.05em}.sl.full{opacity:.5;pointer-events:none}.sl.full .s{color:var(--red)}.sl.on{outline:3px solid var(--blue);outline-offset:2px}.sl.on .s{color:var(--amber)}
+.msg{font-size:.92rem;color:var(--muted);min-height:3em;margin-bottom:12px}
+.plq{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.pq{background:var(--bd);border:2px solid var(--bd-edge);border-radius:10px;padding:10px 6px 8px;text-align:center;color:var(--tx)}.pq b{display:block;font:700 2.6rem/1 var(--display);color:var(--amber);font-variant-numeric:tabular-nums}.pq span{font:500 .78rem/1.2 var(--display);color:var(--dim);text-transform:uppercase;letter-spacing:.06em}
+.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 0;border-top:1px solid var(--line)}.row b{display:block;line-height:1.2}.row small{color:var(--muted)}
+.st{font-weight:700;font-size:.82rem;padding:4px 10px;border-radius:6px;white-space:nowrap;background:color-mix(in srgb,var(--blue) 14%,transparent);color:var(--blue)}.st.ok{background:rgb(15 122 85/.16);color:#0f7a55}.st.wait{background:rgb(255 194 74/.22);color:#8a5a00}
+:root[data-theme=dark] .st.ok{color:#5ce0a0}:root[data-theme=dark] .st.wait{color:#ffc24a}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .st.ok{color:#5ce0a0}:root:not([data-theme=light]) .st.wait{color:#ffc24a}}
+.note2{color:var(--muted);font-size:.9rem;margin-top:14px;max-width:52ch}
+footer{padding:40px 0 56px;color:var(--muted);font-size:.9rem;border-top:1px solid var(--line)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style></head>
+<body>
+<header class="bar"><div class="wrap"><a class="brand" href="index.html">jadwalin.id</a>
+<div class="seg" role="group" aria-label="Tema"><button data-t="auto">Otomatis</button><button data-t="light">Terang</button><button data-t="dark">Gelap</button></div></div></header>
+<main><div class="wrap">
+<section class="hero">
+ <h1>Apapun bisnismu, jadwalin.id solusinya.</h1>
+ <p class="lead">Seluruh jadwal hari ini terbaca sekali lihat, seperti papan di stasiun. Pelanggan memilih jam sendiri; Anda tahu siapa datang dan siapa yang belum bayar DP.</p>
+ <div class="cta"><a class="btn pri" href="#">Buat halaman booking</a><a class="btn" href="#pelanggan">Lihat sisi pelanggan</a></div>
+ <div class="chips" id="chips" role="group" aria-label="Jenis usaha"></div>
+ <div class="board" id="board" aria-label="Papan jadwal contoh">
+  <div class="bh"><span class="bt" id="bt">Jadwal hari ini</span><span class="clk" id="clk">09:41</span></div>
+  <div class="th rw"><span>Jam</span><span>Kegiatan</span><span class="who">Pelanggan</span><span class="loc" id="locl">Ruang</span><span>Status</span></div>
+  <div id="rows"></div>
+  <div class="foot"><span id="bz">Klinik Sehat Bersama</span><span>Contoh data</span></div>
+ </div>
+</section>
+
+<section class="sec" id="pelanggan"><div class="two">
+ <div class="phone"><div class="ph"><p class="muted">Klinik Sehat Bersama</p><h3>Konsultasi gizi</h3><p class="muted">45 menit, DP Rp45.000</p>
+  <div class="days" id="days"></div><div class="slots" id="slots"></div><p class="msg" id="msg">Pilih tanggal, lalu jam yang masih tersedia.</p>
+  <button class="btn pri" id="book" style="width:100%" disabled>Pilih jam dulu</button></div></div>
+ <div><h2>Pelanggan memilih jam dari papan yang sama.</h2><p class="sub">Jam yang sudah dipesan langsung berubah jadi penuh, jadi tidak ada dua orang di slot yang sama. Tanpa akun, tanpa chat bolak-balik.</p>
+ <p class="note2">Pelanggan membayar DP langsung ke Anda, lalu mengunggah bukti. Slot ditahan 3 jam sampai Anda memverifikasi. Data di halaman ini fiktif.</p></div>
+</div></section>
+
+<section class="sec"><div class="two">
+ <div><h2>Pemilik membaca hari dalam tiga angka.</h2><p class="sub">Berapa booking hari ini, berapa jam yang masih kosong, dan berapa bukti DP yang menunggu Anda. Sisanya ada di papan.</p>
+ <p class="note2">Pengingat ke pelanggan dikirim lewat email. WhatsApp resmi belum tersedia.</p></div>
+ <div class="phone"><div class="ph"><p class="muted">Klinik Sehat Bersama, hari ini</p><h3>Ringkasan</h3>
+  <div class="plq"><div class="pq"><b data-n="6">0</b><span>Booking</span></div><div class="pq"><b data-n="5">0</b><span>Jam kosong</span></div><div class="pq"><b data-n="1">0</b><span>Perlu verifikasi</span></div></div>
+  <div class="row"><div><b>10.30 Budi Santoso</b><small>Cek rutin, bukti transfer masuk</small></div><span class="st wait">Menunggu Anda</span></div>
+  <div class="row"><div><b>13.00 Kelas yoga ibu hamil</b><small>12 dari 15 kursi terisi</small></div><span class="st ok">Berjalan</span></div>
+  <div class="row"><div><b>14.30 sampai 15.30</b><small>Belum ada yang memesan</small></div><span class="st">Kosong</span></div></div></div>
+</div></section>
+</div></main>
+<footer><div class="wrap">Arah desain Papan Keberangkatan untuk jadwalin.id. Tampilan contoh, belum dipasang di aplikasi.</div></footer>
+
+<script>
+(function(){
+var root=document.documentElement,q=new URLSearchParams(location.search),forced=q.get('theme');
+function setTheme(t){if(forced&&t!==forced)t=forced;else if(!forced){try{localStorage.setItem('jd-theme',t)}catch(e){}}
+ if(t==='auto')root.removeAttribute('data-theme');else root.setAttribute('data-theme',t);
+ document.querySelectorAll('.seg button').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.t===t))})}
+var s=null;try{s=localStorage.getItem('jd-theme')}catch(e){}setTheme(forced||s||'auto');
+document.querySelectorAll('.seg button').forEach(function(b){b.onclick=function(){setTheme(b.dataset.t)}});
+addEventListener('message',function(e){if(e.data&&e.data.jdTheme)setTheme(e.data.jdTheme)});
+var RM=matchMedia('(prefers-reduced-motion: reduce)').matches,AL='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789 .:-';
+var BIZ=[
+ {n:'Klinik',nm:'Klinik Sehat Bersama',loc:'Ruang',rows:[['08.30','CEK RUTIN','BAYU S.','1','SELESAI','dim'],['09.00','KONSUL GIZI','RINA M.','2','BERJALAN',''],['10.30','CEK RUTIN','BUDI S.','1','BUKTI MASUK','wait'],['11.30','KONSUL GIZI','TARI W.','2','KONFIRMASI','ok'],['13.00','KELAS YOGA','12 PESERTA','A','KONFIRMASI','ok'],['14.30','','','','KOSONG','dim'],['15.30','KONSUL GIZI','MADE W.','2','MENUNGGU DP','wait']]},
+ {n:'Salon',nm:'Salon Dewi',loc:'Kursi',rows:[['09.00','POTONG','LIA P.','1','SELESAI','dim'],['09.30','CREAMBATH','DEWI K.','2','BERJALAN',''],['11.00','WARNA RAMBUT','SANTI L.','3','KONFIRMASI','ok'],['12.30','','','','KOSONG','dim'],['13.30','NAIL ART','NANDA P.','4','BUKTI MASUK','wait'],['15.00','POTONG','RIKA A.','1','KONFIRMASI','ok'],['16.30','CREAMBATH','YUNI S.','2','MENUNGGU DP','wait']]},
+ {n:'Rental mobil',nm:'Berkah Rental',loc:'Unit',rows:[['08.00','AMBIL','ANDI P.','AVZ','BERJALAN',''],['10.00','KEMBALI','JOKO T.','INV','SELESAI','dim'],['11.00','CUCI','INTERNAL','INV','BERJALAN',''],['13.00','AMBIL','SITI A.','BRO','KONFIRMASI','ok'],['15.00','AMBIL','RUDI H.','INV','BUKTI MASUK','wait'],['16.30','KEMBALI','ANDI P.','AVZ','KONFIRMASI','ok'],['18.00','','','','KOSONG','dim']]},
+ {n:'Bimbel',nm:'Bimbel Cerdas',loc:'Kelas',rows:[['15.00','MATEMATIKA','8 SISWA','A1','BERJALAN',''],['16.30','FISIKA','10 SISWA','A2','KONFIRMASI','ok'],['16.30','KIMIA','PENUH','B1','KONFIRMASI','ok'],['18.00','B. INGGRIS','6 SISWA','A1','KONFIRMASI','ok'],['19.30','ORTU','PAK HENDRA','R1','BUKTI MASUK','wait'],['20.30','','','','KOSONG','dim'],['21.00','TRYOUT','MENUNGGU DP','A2','MENUNGGU DP','wait']]},
+ {n:'Studio foto',nm:'Studio Terang',loc:'Studio',rows:[['09.00','KELUARGA','WIJAYA','A','BERJALAN',''],['10.30','PAS FOTO','RUDI H.','B','SELESAI','dim'],['11.00','PRODUK','TOKO AYU','A','KONFIRMASI','ok'],['13.00','PREWEDDING','CITRA','OUT','BUKTI MASUK','wait'],['15.30','WISUDA','BIMA R.','B','KONFIRMASI','ok'],['17.00','','','','KOSONG','dim'],['18.00','POTRET','LINA M.','A','MENUNGGU DP','wait']]},
+ {n:'Servis AC',nm:'Dingin Jaya',loc:'Tim',rows:[['08.30','CUCI 2 UNIT','BU ERNA','1','SELESAI','dim'],['10.30','ISI FREON','PAK FAISAL','2','BERJALAN',''],['13.30','CEK BOCOR','BU GITA','1','KONFIRMASI','ok'],['14.30','','','','KOSONG','dim'],['15.30','CUCI 5 UNIT','KANTOR SR','2','BUKTI MASUK','wait'],['16.30','PASANG BARU','PAK DODI','1','MENUNGGU DP','wait'],['17.30','CUCI 1 UNIT','BU TINA','2','KONFIRMASI','ok']]}
+];
+var N=[5,13,10,3,11],cur=0,timers=[],rowsEl=document.getElementById('rows');
+function build(){rowsEl.innerHTML='';for(var r=0;r<7;r++){var row=document.createElement('div');row.className='rw';var names=['tm','act','who','loc','st'];
+ for(var f=0;f<5;f++){var fl=document.createElement('div');fl.className='fld '+names[f];fl.style.setProperty('--n',N[f]);for(var c=0;c<N[f];c++){var sp=document.createElement('span');sp.className='fl';sp.textContent=' ';fl.appendChild(sp)}row.appendChild(fl)}
+ rowsEl.appendChild(row)}}
+function flap(cell,ch,delay){if(cell.textContent===ch)return;var steps=RM?0:3+Math.floor(Math.random()*4),k=0;
+ timers.push(setTimeout(function go(){if(k<steps){cell.textContent=AL[Math.floor(Math.random()*AL.length)];cell.classList.remove('f');void cell.offsetWidth;cell.classList.add('f');k++;timers.push(setTimeout(go,55))}else{cell.textContent=ch}},delay))}
+function setField(fld,text,n,delay){text=(text||'').toUpperCase().slice(0,n);var cells=fld.children;for(var i=0;i<n;i++){flap(cells[i],i<text.length?text[i]:' ',delay+i*14)}}
+function setRow(r,d,delay){var row=rowsEl.children[r];row.className='rw'+(d[5]==='dim'?' dim':'');var f=row.children;
+ setField(f[0],d[0],N[0],delay);setField(f[1],d[1],N[1],delay);setField(f[2],d[2],N[2],delay);setField(f[3],d[3],N[3],delay);setField(f[4],d[4],N[4],delay);
+ f[4].className='fld st '+((d[5]&&d[5]!=='dim')?d[5]:'')}
+function show(i){timers.forEach(clearTimeout);timers=[];cur=i;var b=BIZ[i];document.getElementById('locl').textContent=b.loc;document.getElementById('bz').textContent=b.nm;
+ b.rows.forEach(function(d,r){setRow(r,d,r*(RM?0:140))});
+ /* satu momen: bukti baru masuk lalu dikonfirmasi, dan satu percobaan bentrok ditolak */
+ if(!RM){var last=b.rows.length-1;
+  timers.push(setTimeout(function(){setRow(last,[b.rows[last][0],b.rows[last][1],b.rows[last][2],b.rows[last][3],'BUKTI MASUK','wait'],0)},4200));
+  timers.push(setTimeout(function(){setRow(last,[b.rows[last][0],b.rows[last][1],b.rows[last][2],b.rows[last][3],'KONFIRMASI','ok'],0)},7200));
+  timers.push(setTimeout(function(){var d=b.rows[1];setRow(1,[d[0],d[1],d[2],d[3],'BENTROK','bad'],0)},9000));
+  timers.push(setTimeout(function(){var d=b.rows[1];setRow(1,d,0)},11000));}
+ var cl=document.getElementById('clk'),m=41;cl.textContent='09:41'}
+var clk=setInterval(function(){var c=document.getElementById('clk'),p=c.textContent.split(':'),m=(+p[1]+1)%60,h=+p[0]+(m===0?1:0);c.textContent=String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')},RM?1e9:4000);
+var ch=document.getElementById('chips');BIZ.forEach(function(b,i){var c=document.createElement('button');c.className='chip'+(i?'':' on');c.textContent=b.n;c.onclick=function(){ch.querySelectorAll('.chip').forEach(function(x){x.classList.toggle('on',x===c)});show(i)};ch.appendChild(c)});
+build();show(0);
+/* booking */
+var HARI=['Min','Sen','Sel','Rab','Kam','Jum','Sab'],dEl=document.getElementById('days'),sEl=document.getElementById('slots'),msg=document.getElementById('msg'),bk=document.getElementById('book'),selD=null,selT=null,done=false;
+var T=['09.00','10.00','11.00','13.00','14.30','15.30'];
+for(var i=0;i<5;i++){(function(i){var d=new Date(2026,10,16+i),b=document.createElement('button');b.className='day';b.innerHTML=d.getDate()+'<small>'+HARI[d.getDay()]+'</small>';
+ b.onclick=function(){if(done)return;selD=d;selT=null;dEl.querySelectorAll('.day').forEach(function(x){x.classList.toggle('on',x===b)});slots();upd()};dEl.appendChild(b)})(i)}
+function slots(){sEl.innerHTML='';T.forEach(function(t,i){var full=(selD.getDate()*3+i)%5===0,b=document.createElement('button');b.className='sl'+(full?' full':'');b.innerHTML='<span class="t">'+t+'</span><span>Konsultasi gizi</span><span class="s">'+(full?'Penuh':'Tersedia')+'</span>';
+ b.onclick=function(){if(done)return;selT=t;sEl.querySelectorAll('.sl').forEach(function(x){x.classList.toggle('on',x===b);var s=x.querySelector('.s');if(!x.classList.contains('full'))s.textContent=x===b?'Dipilih':'Tersedia'});upd()};sEl.appendChild(b)})}
+function upd(){if(selD&&selT){bk.disabled=false;bk.textContent='Pesan '+selT+' WIB';msg.textContent='Berikutnya Anda membayar DP Rp45.000 langsung ke klinik dan mengunggah bukti.'}else{bk.disabled=true;bk.textContent=selD?'Pilih jam dulu':'Pilih tanggal dulu';msg.textContent=selD?'Pilih jam yang masih tersedia.':'Pilih tanggal, lalu jam yang masih tersedia.'}}
+bk.onclick=function(){done=true;bk.disabled=true;bk.textContent='Menunggu verifikasi';var on=sEl.querySelector('.sl.on .s');if(on){on.textContent='Menunggu DP'}msg.textContent='Slot ditahan 3 jam. Klinik akan mengonfirmasi setelah bukti Anda diverifikasi.'};
+bk.textContent='Pilih tanggal dulu';
+/* plakat angka */
+document.querySelectorAll('.pq b').forEach(function(b){var to=+b.dataset.n,k=0;(function f(){if(RM){b.textContent=to;return}b.textContent=Math.floor(Math.random()*10);if(++k<12)setTimeout(f,60);else b.textContent=to})()});
+})();
+</script></body></html>

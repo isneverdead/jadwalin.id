@@ -3,6 +3,7 @@ import { and, asc, eq, gte, inArray, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { AppError, isExclusionViolation, isUniqueViolation } from "./errors";
+import { requireFeature } from "./features";
 import { hashToken, newToken } from "./tokens";
 import { normalizePhone } from "./phone";
 import {
@@ -90,6 +91,8 @@ export async function createMeetingType(pool: pg.Pool, actor: Actor, input: Meet
     throw new AppError("invalid_input", "Kombinasi interval slot dan rentang hari terlalu rapat. Perbesar interval atau perkecil rentang hari.");
   }
   return withWorkspace(pool, actor, "admin", async (db, access) => {
+    await requireFeature(db, access, "jadwal");
+    if (values.depositIdr > 0) await requireFeature(db, access, "pembayaran");
     try {
       const [row] = await db
         .insert(schema.meetingTypes)
@@ -102,6 +105,34 @@ export async function createMeetingType(pool: pg.Pool, actor: Actor, input: Meet
       if (isUniqueViolation(error)) throw new AppError("slug_taken", "Kode jenis pertemuan sudah dipakai.");
       throw error;
     }
+  });
+}
+
+/**
+ * Mengubah layanan yang sudah ada (nama, durasi, DP, lokasi). Kode link tidak berubah supaya tautan yang sudah dibagikan tetap hidup.
+ * Booking yang sudah dibuat tidak terpengaruh (waktu dan nominalnya sudah tercatat).
+ */
+export async function updateMeetingType(
+  pool: pg.Pool,
+  actor: Actor,
+  meetingTypeId: string,
+  input: { title: string; durationMin: number; depositIdr?: number; locationKind: MeetingTypeInput["locationKind"]; locationValue?: string },
+) {
+  const title = input.title.trim();
+  if (title.length < 2 || title.length > 80) throw new AppError("invalid_input", "Judul 2–80 karakter.");
+  const values = {
+    title,
+    durationMin: intInRange(input.durationMin, 30, 5, 480, "Durasi (menit)"),
+    locationKind: input.locationKind,
+    locationValue: validateLocation(input.locationKind, input.locationValue),
+    depositIdr: intInRange(input.depositIdr, 0, 0, 100_000_000, "DP (Rupiah)"),
+  };
+  if (values.depositIdr > 0 && values.depositIdr < 1000) throw new AppError("invalid_input", "DP minimal Rp1.000 (atau 0 untuk gratis).");
+  return withWorkspace(pool, actor, "admin", async (db, access) => {
+    if (values.depositIdr > 0) await requireFeature(db, access, "pembayaran");
+    const updated = await db.update(schema.meetingTypes).set(values).where(eq(schema.meetingTypes.id, meetingTypeId)).returning({ id: schema.meetingTypes.id });
+    if (updated.length === 0) throw new AppError("not_found", "Jenis pertemuan tidak ditemukan.");
+    await audit(db, { workspaceId: access.workspaceId, actorUserId: actor.userId, action: "meeting_type.updated", entityType: "meeting_type", entityId: meetingTypeId, diff: values });
   });
 }
 
@@ -239,7 +270,7 @@ export async function listOverrides(pool: pg.Pool, actor: Actor, opts: { memberI
 
 async function loadTimezone(db: Db, workspaceId: string) {
   const [ws] = await db.select({ timezone: schema.workspaces.timezone }).from(schema.workspaces).where(eq(schema.workspaces.id, workspaceId)).limit(1);
-  if (!ws || !isWorkspaceTimezone(ws.timezone)) throw new AppError("invalid_input", "Zona waktu workspace tidak didukung.");
+  if (!ws || !isWorkspaceTimezone(ws.timezone)) throw new AppError("invalid_input", "Zona waktu halaman tidak didukung.");
   return ws.timezone;
 }
 

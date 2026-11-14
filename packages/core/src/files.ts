@@ -1,9 +1,10 @@
 import { schema, withWorker, type Db } from "@jadwalin/db";
-import { and, desc, eq, lt } from "drizzle-orm";
+import { and, desc, eq, lt, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { getLimits } from "./entitlements";
 import { AppError } from "./errors";
+import { requireFeature } from "./features";
 import type { PresignedUpload, StorageAdapter } from "./storage";
 import { audit, withWorkspace, type Actor, type WorkspaceRef } from "./workspace";
 
@@ -52,7 +53,7 @@ export async function createPendingFile(
   db: Db,
   access: WorkspaceRef,
   storage: StorageAdapter,
-  uploadedBy: string,
+  uploadedBy: string | null,
   req: UploadRequest,
 ): Promise<{ fileId: string; upload: PresignedUpload }> {
   const { filename, mime } = await validateUpload(access.workspaceId, req);
@@ -98,6 +99,7 @@ export async function signDownload(db: Db, access: WorkspaceRef, storage: Storag
 
 export async function requestUpload(pool: pg.Pool, actor: Actor, storage: StorageAdapter, req: UploadRequest) {
   return withWorkspace(pool, actor, "staff", async (db, access) => {
+    await requireFeature(db, access, "berkas");
     const result = await createPendingFile(db, access, storage, actor.userId, req);
     await audit(db, { workspaceId: access.workspaceId, actorUserId: actor.userId, action: "file.upload_requested", entityType: "file", entityId: result.fileId, diff: { filename: req.filename, mime: req.mime, sizeBytes: req.sizeBytes } });
     return result;
@@ -126,7 +128,13 @@ export async function listFiles(pool: pg.Pool, actor: Actor) {
     db
       .select({ id: schema.files.id, filename: schema.files.filename, mime: schema.files.mime, sizeBytes: schema.files.sizeBytes, uploadedBy: schema.files.uploadedBy, createdAt: schema.files.createdAt })
       .from(schema.files)
-      .where(eq(schema.files.status, "ready"))
+      // Menu Berkas hanya berisi dokumen yang diunggah sendiri; lampiran tiket, bukti bayar, dan QRIS punya tempatnya masing-masing.
+      .where(and(
+        eq(schema.files.status, "ready"),
+        sql`NOT EXISTS (SELECT 1 FROM ticket_attachments ta WHERE ta.file_id = ${schema.files.id})`,
+        sql`NOT EXISTS (SELECT 1 FROM payment_proofs pp WHERE pp.file_id = ${schema.files.id})`,
+        sql`NOT EXISTS (SELECT 1 FROM payment_methods pm WHERE pm.qris_file_id = ${schema.files.id})`,
+      ))
       .orderBy(desc(schema.files.createdAt))
       .limit(200),
   );

@@ -9,16 +9,26 @@ export default async function JadwalSayaPage() {
   const workspaces = await listMyClientWorkspaces(getPool(), user.id);
   return (
     <>
-      <p><Link href="/dashboard">← Dashboard</Link></p>
-      <h1>Jadwal saya</h1>
+      <p className="crumb"><Link href="/dashboard">← Dashboard</Link></p>
+      <header className="page-head">
+        <div>
+          <h1>Jadwal saya</h1>
+          <p>Tempat Anda tercatat sebagai klien. Buka salah satu untuk melihat tiket dan jadwal meeting Anda.</p>
+        </div>
+      </header>
       {workspaces.length === 0 ? (
-        <p>Anda belum tercatat sebagai klien di workspace mana pun.</p>
+        <div className="empty"><strong>Anda belum tercatat sebagai klien di usaha mana pun.</strong><small>Untuk memesan, buka halaman publik usahanya: jadwalin.id/&lt;nama&gt;.</small></div>
       ) : (
-        workspaces.map((w) => (
-          <div className="card" key={w.workspaceId}><Link href={`/jadwal-saya/${w.slug}`}>{w.name}</Link><small>jadwalin.id/{w.slug}</small></div>
-        ))
+        <div className="biz-grid">
+          {workspaces.map((w) => (
+            <Link className="biz-card" key={w.workspaceId} href={`/jadwal-saya/${w.slug}`}>
+              <span className="avatar sm" aria-hidden="true">{w.name.slice(0, 1).toUpperCase()}</span>
+              <span className="grow"><strong>{w.name}</strong><small>jadwalin.id/{w.slug}</small></span>
+              <span className="go" aria-hidden="true">→</span>
+            </Link>
+          ))}
+        </div>
       )}
-      <p><small>Buka salah satu untuk melihat tiket dan jadwal meeting Anda. Untuk menghubungi workspace baru, buka jadwalin.id/&lt;nama-workspace&gt;.</small></p>
     </>
   );
 }

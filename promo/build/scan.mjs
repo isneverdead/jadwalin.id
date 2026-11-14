@@ -1,0 +1,12 @@
+import { ctx, shot, browser } from "./lib.mjs";
+const D = "/Users/fariz/Documents/PORTFOLIO/Jadwalin.id/promo/build/scan";
+const o = await ctx(1280, 800, "owner");
+await shot(o, "/dashboard", "dash", { dir: D });
+await shot(o, "/dashboard/bisnis-baru", "baru", { dir: D, full: true });
+await shot(o, "/w/demo-pajak-rahayu", "ws", { dir: D, full: true });
+await shot(o, "/w/demo-pajak-rahayu/tiket/1", "tiket", { dir: D, full: true });
+await shot(o, "/w/demo-pajak-rahayu/pembayaran", "bayar", { dir: D, full: true });
+await shot(o, "/w/demo-pajak-rahayu/jadwal", "jadwal", { dir: D, full: true });
+const g = await ctx(390, 844, null);
+await shot(g, "/demo-pajak-rahayu", "pub", { dir: D, full: true });
+await browser.close();

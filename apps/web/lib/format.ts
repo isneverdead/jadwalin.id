@@ -53,3 +53,19 @@ export function groupSlotsByDay(slots: { start: Date }[], tz: string): { day: st
   }
   return [...groups.entries()].map(([day, items]) => ({ day, items }));
 }
+
+/** Slot → hari-hari untuk SlotPicker: kunci tanggal lokal workspace + jam "HH:MM". */
+export function toPickerDays(slots: { start: Date }[], tz: string): { days: { date: string; times: { iso: string; label: string }[] }[]; todayKey: string } {
+  const dateFmt = new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" });
+  const timeFmt = new Intl.DateTimeFormat("id-ID", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false });
+  const map = new Map<string, { iso: string; label: string }[]>();
+  for (const s of slots) {
+    const key = dateFmt.format(s.start);
+    map.set(key, [...(map.get(key) ?? []), { iso: s.start.toISOString(), label: timeFmt.format(s.start).replace(".", ":") }]);
+  }
+  return { days: [...map.entries()].sort(([a], [b]) => a.localeCompare(b)).map(([date, times]) => ({ date, times })), todayKey: dateFmt.format(new Date()) };
+}
+
+export function fmtIdr(n: number): string {
+  return `Rp${n.toLocaleString("id-ID")}`;
+}

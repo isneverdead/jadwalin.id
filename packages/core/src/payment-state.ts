@@ -2,12 +2,14 @@
  * State machine pembayaran (aturan #10). MURNI: tanpa DB/jam. Semua perubahan status pembayaran wajib melewati
  * `assertTransition` dan menulis baris `payment_events` di transaksi yang sama (lihat payments.ts).
  */
-export const PAYMENT_STATUSES = ["created", "pending", "paid", "refund_pending", "partially_refunded", "refunded", "expired", "failed", "cancelled"] as const;
+export const PAYMENT_STATUSES = ["created", "pending", "awaiting_verification", "paid", "refund_pending", "partially_refunded", "refunded", "expired", "failed", "cancelled"] as const;
 export type PaymentStatus = (typeof PAYMENT_STATUSES)[number];
 
 const TRANSITIONS: Record<PaymentStatus, readonly PaymentStatus[]> = {
   created: ["pending", "failed", "cancelled"],
-  pending: ["paid", "expired", "failed", "cancelled"],
+  // 'awaiting_verification' (ADR 0002): pelanggan sudah mengirim bukti, menunggu staf. Staf boleh juga langsung 'paid' (mis. tunai).
+  pending: ["awaiting_verification", "paid", "expired", "failed", "cancelled"],
+  awaiting_verification: ["paid", "pending", "cancelled"], // ditolak → kembali 'pending' agar bisa unggah ulang
   // Pembayaran bisa masuk TERLAMBAT setelah kedaluwarsa (mis. VA dibayar menit ke-31): dana nyata sudah diterima penyedia.
   expired: ["paid"],
   paid: ["refund_pending", "partially_refunded", "refunded"],

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pilih Biru</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{color-scheme:light;--bg:#f6f5f1;--surface:#fff;--surface-2:#efede7;--fg:#16181d;--muted:#5d626d;--line:#e6e4dd;--line-strong:#cbc7bb;--signal-bg:#fbeede;--warn:#8a4b00;--signal:#b25e09}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.5 'Figtree',system-ui,sans-serif}
+.wrap{max-width:1100px;margin:0 auto;padding:20px 16px 64px}
+h1{font-size:clamp(28px,7vw,38px);line-height:1.1;letter-spacing:-.02em;margin:8px 0 8px;font-weight:650}
+.lead{color:var(--muted);margin:0 0 22px;max-width:60ch}
+.grid{display:grid;gap:16px;grid-template-columns:1fr}
+@media(min-width:700px){.grid{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1000px){.grid{grid-template-columns:repeat(3,1fr)}}
+.card{--a:#0a60d6;--ah:#084bb0;--soft:#e7f0fd;--hov:#d3e4fb;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:0 1px 2px rgba(22,24,29,.06),0 12px 28px -16px rgba(22,24,29,.25)}
+.card h2{margin:0;font-size:1.15rem;font-weight:650;display:flex;align-items:center;gap:10px}
+.sw{width:22px;height:22px;border-radius:7px;background:var(--a);flex:none}
+.meta{margin:2px 0 14px;color:var(--muted);font-size:.85rem;font-variant-numeric:tabular-nums}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px}
+.btn{min-height:48px;padding:0 20px;border:0;border-radius:12px;background:var(--a);color:#fff;font:600 .95rem 'Figtree',sans-serif;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 1px 2px rgba(22,24,29,.3),0 8px 16px -8px var(--a);touch-action:manipulation}
+.btn::after{content:" \2192"}
+.btn:hover{background:var(--ah)}
+.btn:active{transform:translateY(1px)}
+.ghost{background:var(--surface);color:var(--fg);box-shadow:inset 0 0 0 1px var(--line-strong),0 1px 2px rgba(22,24,29,.06)}
+.ghost::after{content:none}
+.ghost:hover{background:var(--surface-2)}
+a.link{color:var(--a);font-weight:600;text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:4px;min-height:44px;display:inline-flex;align-items:center;padding:0 6px;border-radius:6px}
+a.link:hover{background:var(--soft)}
+.days{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;margin-bottom:14px}
+.d{min-height:46px;border:0;border-radius:8px;background:var(--soft);color:var(--fg);font:600 .95rem 'Figtree',sans-serif;cursor:pointer}
+.d:hover{background:var(--hov)}
+.d.on{background:var(--a);color:#fff;box-shadow:inset 0 1px 0 rgba(255,255,255,.2),0 8px 16px -8px var(--a)}
+.d.off{background:transparent;color:var(--muted);opacity:.75;cursor:not-allowed}
+.nav{display:flex;align-items:center;gap:10px;min-height:46px;padding:0 12px;border-radius:10px;background:var(--soft);font-weight:600;margin-bottom:8px}
+.nav .count{margin-left:auto;min-width:24px;height:24px;display:grid;place-items:center;padding:0 7px;border-radius:999px;background:var(--a);color:#fff;font-size:.75rem;font-weight:700}
+.badges{display:flex;flex-wrap:wrap;gap:8px}
+.badge{display:inline-flex;align-items:center;gap:6px;min-height:26px;padding:0 10px;border-radius:999px;font-size:.78rem;font-weight:600;background:var(--soft);color:var(--a)}
+.badge.o{background:var(--signal-bg);color:var(--warn)}
+.badge.o::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--signal)}
+.pick{margin-top:12px;width:100%;min-height:44px;border:1px solid var(--line-strong);background:var(--surface);color:var(--fg);border-radius:10px;font:600 .9rem 'Figtree',sans-serif;cursor:pointer}
+.pick:hover{background:var(--surface-2)}
+.pick[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+.note{margin:24px 0 0;color:var(--muted);font-size:.88rem;max-width:68ch}
+.back{display:inline-flex;align-items:center;min-height:44px;color:var(--fg);font-weight:600}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="back" href="index.html">← Kembali</a>
+  <h1>Pilih biru untuk mode terang</h1>
+  <p class="lead">Enam pilihan biru, masing-masing dengan elemen yang sama: tombol, tautan, kalender, menu aktif, dan badge. Mode gelap tidak memakai biru, jadi tidak terpengaruh. Ketuk "Pilih ini" untuk menandai pilihan Anda, lalu sebutkan namanya.</p>
+  <div class="grid" id="grid"></div>
+  <p class="note">Rasio kontras dihitung otomatis dengan rumus WCAG: putih di atas biru (teks tombol, harus ≥ 4,5) dan biru di atas kertas #f6f5f1 (tautan, harus ≥ 4,5). Latar lembut dan sorotan diturunkan dari tiap biru dengan campuran putih 10% dan 18%.</p>
+</div>
+<script>
+(function(){
+  var BLUES=[
+    ['Azur (sekarang)','#0a60d6','Jernih, sedikit kehijauan. Yang Anda lihat terakhir.'],
+    ['Royal','#1d4ed8','Lebih tua dan serius, mirip biru bank.'],
+    ['Biru laut','#0369a1','Lebih tenang, condong ke teal. Terasa bersih.'],
+    ['Biru terang','#2563eb','Cerah dan ramah, umum dipakai aplikasi.'],
+    ['Navy','#1e3a8a','Gelap dan tegas, kesan resmi dan tepercaya.'],
+    ['Biru tinta','#1b3a6b','Paling kalem dan mewah, hampir kelabu.']
+  ];
+  function hex(h){return [1,3,5].map(function(i){return parseInt(h.substr(i,2),16)})}
+  function lum(c){var v=c.map(function(x){x/=255;return x<=.03928?x/12.92:Math.pow((x+.055)/1.055,2.4)});return .2126*v[0]+.7152*v[1]+.0722*v[2]}
+  function ratio(a,b){var l1=lum(a),l2=lum(b);if(l1<l2){var t=l1;l1=l2;l2=t}return (l1+.05)/(l2+.05)}
+  function mix(c,t,p){return '#'+c.map(function(x,i){var v=Math.round(x*p+t[i]*(1-p));return ('0'+v.toString(16)).slice(-2)}).join('')}
+  function dark(c,p){return '#'+c.map(function(x){return ('0'+Math.round(x*p).toString(16)).slice(-2)}).join('')}
+  var grid=document.getElementById('grid'),paper=hex('#f6f5f1'),white=[255,255,255];
+  BLUES.forEach(function(b){
+    var c=hex(b[1]);
+    var card=document.createElement('section');card.className='card';
+    card.style.setProperty('--a',b[1]);card.style.setProperty('--ah',dark(c,.78));
+    card.style.setProperty('--soft',mix(c,white,.1));card.style.setProperty('--hov',mix(c,white,.18));
+    var r1=ratio(white,c).toFixed(1).replace('.',','),r2=ratio(paper,c).toFixed(1).replace('.',',');
+    card.innerHTML='<h2><span class="sw"></span>'+b[0]+'</h2>'+
+      '<p class="meta">'+b[1]+' · putih/biru '+r1+':1 · biru/kertas '+r2+':1<br>'+b[2]+'</p>'+
+      '<div class="row"><button class="btn" type="button">Lanjut bayar DP</button><button class="btn ghost" type="button">Salin tautan</button><a class="link" href="#">Lihat bukti</a></div>'+
+      '<div class="days"><button class="d off" type="button" disabled>15</button><button class="d" type="button">16</button><button class="d on" type="button">17</button><button class="d" type="button">18</button><button class="d" type="button">19</button></div>'+
+      '<div class="nav"><span>Pembayaran</span><span class="count">2</span></div>'+
+      '<div class="badges"><span class="badge">Tersedia</span><span class="badge o">Cek bukti DP</span></div>'+
+      '<button class="pick" type="button" aria-pressed="false">Pilih ini</button>';
+    grid.appendChild(card);
+  });
+  grid.addEventListener('click',function(e){
+    var p=e.target.closest('.pick');if(!p)return;
+    grid.querySelectorAll('.pick').forEach(function(x){x.setAttribute('aria-pressed','false');x.textContent='Pilih ini'});
+    p.setAttribute('aria-pressed','true');p.textContent='Dipilih';
+  });
+})();
+</script>
+</body>
+</html>

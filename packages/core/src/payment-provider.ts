@@ -224,7 +224,29 @@ export class MidtransProvider implements PaymentProvider {
   }
 }
 
-export type ProviderConfig = { provider: "fake"; fakeSecret: string } | { provider: "midtrans"; serverKey: string; environment: "sandbox" | "production" };
+export type ProviderConfig = { provider: "manual" } | { provider: "fake"; fakeSecret: string } | { provider: "midtrans"; serverKey: string; environment: "sandbox" | "production" };
 export function createPaymentProvider(cfg: ProviderConfig): PaymentProvider {
+  if (cfg.provider === "manual") return new ManualProvider();
   return cfg.provider === "fake" ? new FakeProvider(cfg.fakeSecret) : new MidtransProvider({ serverKey: cfg.serverKey, environment: cfg.environment });
+}
+
+/**
+ * Penyedia "manual" (ADR 0002): tidak ada gateway. Pelanggan membayar langsung ke penyedia jasa di luar sistem; staf memverifikasi.
+ * Refund = pencatatan: staf mentransfer sendiri, sistem hanya mencatat. Tidak ada notifikasi dari luar.
+ */
+export class ManualProvider implements PaymentProvider {
+  readonly name = "manual";
+  readonly settlement = "own_account" as const;
+  async createCharge(): Promise<Charge> {
+    throw new Error("Pembayaran manual tidak membuat transaksi di penyedia.");
+  }
+  verifyNotification(): VerifiedNotification {
+    throw new NotificationError("Pembayaran manual tidak menerima notifikasi.");
+  }
+  async fetchStatus() {
+    return null;
+  }
+  async refund() {
+    return { ok: true };
+  }
 }

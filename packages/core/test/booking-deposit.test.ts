@@ -3,7 +3,7 @@ import { createPool } from "@jadwalin/db";
 import { migrateUp } from "@jadwalin/db/migrate";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { AppError, FakeProvider, bookPublic, bookingPaymentHooks, createMeetingType, createWorkspace, getLimits, processWebhook, reconcilePayments, setWeeklyAvailability, type PaymentDeps } from "../src";
+import { AppError, FakeProvider, bookPublic, bookingPaymentHooks, createMeetingType, createWorkspace, getLimits, listPublicSlots, savePaymentMethod, processWebhook, reconcilePayments, setWeeklyAvailability, type PaymentDeps } from "../src";
 
 const url = process.env.DATABASE_URL;
 const NOW = new Date("2036-03-03T00:00:00Z"); // Senin
@@ -19,7 +19,7 @@ describe.skipIf(!url)("booking dengan DP (Postgres asli)", () => {
   let n = 0;
   const slot = (i: number) => new Date(Date.UTC(2036, 2, 10 + 7 * Math.floor(i / 3), 2 + (i % 3))); // Senin 09–11 WIB
   let si = 0;
-  const guest = (extra: Record<string, unknown> = {}) => ({ name: "Tamu DP", email: `dp${++n}-${sfx}@dp.local`, topic: "Konsultasi berbayar", startsAt: slot(si++), privacyAck: true, ...extra }) as Parameters<typeof bookPublic>[3];
+  const guest = (extra: Record<string, unknown> = {}) => ({ name: "Tamu DP", phone: `0812${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`, email: `dp${++n}-${sfx}@dp.local`, topic: "Konsultasi berbayar", startsAt: slot(si++), privacyAck: true, ...extra }) as Parameters<typeof bookPublic>[3];
   const opts = (withPay = true) => ({ baseUrl: "http://t.local", now: NOW, ...(withPay ? { payments: payments() } : {}) });
   const code = (p: Promise<unknown>) => p.then(() => "ok", (e) => (e instanceof AppError ? e.code : `other:${e}`));
   const bstat = async (id: string) => (await pool.query(`SELECT status FROM bookings WHERE id = $1`, [id])).rows[0].status as string;
@@ -47,6 +47,14 @@ describe.skipIf(!url)("booking dengan DP (Postgres asli)", () => {
     expect(Number.isInteger((await getLimits(wsId)).platformFeeBps)).toBe(true);
   });
 
+  it("halaman publik tahu lebih dulu bila DP tidak bisa dibayar (paymentReady): hanya DP tanpa metode bayar aktif yang false", async () => {
+    const before = await listPublicSlots(pool, slug, "berbayar", { now: NOW });
+    expect(before?.paymentReady).toBe(false);
+    expect((await listPublicSlots(pool, slug, "gratis", { now: NOW }))?.paymentReady).toBe(true);
+    await savePaymentMethod(pool, { userId: owner, slug }, { kind: "bank_transfer", label: "BCA", accountName: "Praktik DP", accountNumber: "1234567890" });
+    expect((await listPublicSlots(pool, slug, "berbayar", { now: NOW }))?.paymentReady).toBe(true);
+  });
+
   it("GAGAL TERTUTUP: jenis berDP tanpa layanan pembayaran / tanpa akun terverifikasi tidak menahan slot sama sekali", async () => {
     const s1 = slot(si);
     expect(await code(bookPublic(pool, slug, "berbayar", guest({ startsAt: s1 }), opts(false)))).toBe("payment_unavailable");
@@ -61,7 +69,7 @@ describe.skipIf(!url)("booking dengan DP (Postgres asli)", () => {
     const r = await bookPublic(pool, slug, "berbayar", g, opts());
     expect(r.payment?.checkoutUrl).toContain("pay.fake.local");
     expect(await bstat(r.bookingId)).toBe("pending");
-    const before = await mails(g.email);
+    const before = await mails(g.email!);
     expect(before.map((m) => m.subject)).toEqual([`Menunggu pembayaran: Konsultasi berbayar`, expect.stringContaining("Pengingat"), expect.stringContaining("Pengingat")].slice(0, before.length));
     expect(before[0]!.subject).toBe("Menunggu pembayaran: Konsultasi berbayar");
     expect((await pool.query(`SELECT 1 FROM notification_outbox WHERE workspace_id = $1 AND payload->>'subject' LIKE 'Booking berbayar%'`, [wsId])).rowCount).toBe(0);
@@ -72,10 +80,10 @@ describe.skipIf(!url)("booking dengan DP (Postgres asli)", () => {
     const w = provider.signedNotification({ orderId: r.payment!.paymentId, kind: "paid", amountIdr: 75000 });
     expect(await processWebhook(payments(), w.body, w.headers)).toBe("processed");
     expect(await bstat(r.bookingId)).toBe("confirmed");
-    expect((await mails(g.email)).map((m) => m.subject)).toContain("Pembayaran diterima: Konsultasi berbayar");
+    expect((await mails(g.email!)).map((m) => m.subject)).toContain("Pembayaran diterima: Konsultasi berbayar");
     expect((await pool.query(`SELECT 1 FROM notification_outbox WHERE workspace_id = $1 AND payload->>'subject' LIKE 'Booking berbayar%'`, [wsId])).rowCount).toBeGreaterThanOrEqual(1);
     expect(await processWebhook(payments(), w.body, w.headers)).toBe("duplicate");
-    expect((await mails(g.email)).filter((m) => m.subject.startsWith("Pembayaran diterima"))).toHaveLength(1);
+    expect((await mails(g.email!)).filter((m) => m.subject.startsWith("Pembayaran diterima"))).toHaveLength(1);
   });
 
   it("tidak dibayar: kedaluwarsa melepas slot, pengingat dibatalkan, slot bisa dipesan lagi", async () => {
@@ -84,7 +92,7 @@ describe.skipIf(!url)("booking dengan DP (Postgres asli)", () => {
     clock = new Date(NOW.getTime() + 31 * 60_000);
     await reconcilePayments(payments());
     expect(await bstat(r.bookingId)).toBe("cancelled");
-    expect((await mails(g.email)).filter((m) => m.subject.startsWith("Pengingat")).every((m) => m.status === "cancelled")).toBe(true);
+    expect((await mails(g.email!)).filter((m) => m.subject.startsWith("Pengingat")).every((m) => m.status === "cancelled")).toBe(true);
     clock = NOW;
     const again = await bookPublic(pool, slug, "berbayar", guest({ startsAt: g.startsAt }), opts());
     expect(await bstat(again.bookingId)).toBe("pending");

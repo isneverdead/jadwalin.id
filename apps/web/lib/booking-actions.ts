@@ -1,5 +1,5 @@
 "use server";
-import { AppError, bookPublic, cancelBookingByToken, rescheduleBookingByToken, setMeetingTypeHosts, verifyTurnstile } from "@jadwalin/core";
+import { AppError, bookPublic, cancelBookingByToken, recoverBooking, rescheduleBookingByToken, setMeetingTypeHosts, verifyTurnstile } from "@jadwalin/core";
 import { loadProxyTrust, loadTurnstileEnv } from "@jadwalin/config";
 import { bookAsClient, ticketBookingHooks } from "@jadwalin/module-tickets";
 import { headers } from "next/headers";
@@ -49,12 +49,36 @@ export async function bookAction(slug: string, typeSlug: string, form: FormData)
       getPool(),
       slug,
       typeSlug,
-      { name: str(form, "name"), email: str(form, "email"), phone: str(form, "phone"), topic: str(form, "topic"), notes: str(form, "notes"), startsAt, privacyAck: form.get("privacy") === "on" },
+      { name: str(form, "name"), phone: str(form, "phone"), topic: str(form, "topic"), notes: str(form, "notes"), startsAt, privacyAck: form.get("privacy") === "on" },
       { baseUrl: appBaseUrl(), clientIdentity: ip, hooks, payments: getPaymentDeps() },
     );
     // Booking berDP: lanjut ke halaman bayar penyedia; halaman kelola menampilkan statusnya bila tamu kembali.
-    return r.payment ? r.payment.checkoutUrl : `/booking/${r.manageToken}?baru=1`;
+    return r.payment?.checkoutUrl ?? `/booking/${r.manageToken}?baru=1`;
   });
+}
+
+/** Pelanggan yang kehilangan tautan: kode booking + nomor HP → tautan kelola baru (yang lama berhenti berlaku). */
+export async function recoverBookingAction(form: FormData) {
+  const slug = str(form, "u").trim().toLowerCase();
+  const kode = str(form, "kode").trim();
+  const back = `/booking/cari?u=${encodeURIComponent(slug)}${kode ? `&kode=${encodeURIComponent(kode)}` : ""}`;
+  if (str(form, "website")) redirect("/");
+  const ip = await callerIp();
+  if (!ip) redirect(`${back}&error=${encodeURIComponent("Permintaan tidak dapat diverifikasi. Coba lagi lewat alamat resmi situs ini.")}`);
+  const turnstile = loadTurnstileEnv();
+  if (turnstile.secret) {
+    const ok = await verifyTurnstile({ secret: turnstile.secret, token: str(form, "cf-turnstile-response"), ip });
+    if (!ok) redirect(`${back}&error=${encodeURIComponent("Verifikasi keamanan gagal. Muat ulang halaman dan coba lagi.")}`);
+  }
+  // `back` sudah memuat parameter, jadi galat ditambahkan dengan "&" (bukan lewat run(), yang memakai "?").
+  let token: string;
+  try {
+    token = await recoverBooking(getPool(), slug, { code: kode, phone: str(form, "phone") }, { clientIdentity: ip });
+  } catch (error) {
+    if (!(error instanceof AppError)) throw error;
+    redirect(`${back}&error=${encodeURIComponent(error.message)}`);
+  }
+  redirect(`/booking/${token}?pulih=1`);
 }
 
 export async function cancelBookingAction(token: string) {

@@ -77,7 +77,7 @@ describe.skipIf(!url)("booking publik (Postgres asli)", () => {
   const owner = () => ({ userId: u.owner.id, slug });
   const code = (p: Promise<unknown>) => p.then(() => "ok", (e) => (e instanceof AppError ? e.code : `other:${e}`));
   let n = 0;
-  const guest = (extra: Record<string, unknown> = {}) => ({ name: "Tamu Uji", email: `tamu${++n}-${sfx}@pub.local`, topic: "Ingin konsultasi", startsAt: MON1(2), privacyAck: true, ...extra }) as Parameters<typeof bookPublic>[3];
+  const guest = (extra: Record<string, unknown> = {}) => ({ name: "Tamu Uji", phone: `0812${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`, email: `tamu${++n}-${sfx}@pub.local`, topic: "Ingin konsultasi", startsAt: MON1(2), privacyAck: true, ...extra }) as Parameters<typeof bookPublic>[3];
   const outbox = async (to: string) => (await pool.query(`SELECT template, status, payload, send_at FROM notification_outbox WHERE recipient = $1 ORDER BY created_at`, [to.toLowerCase()])).rows as { template: string; status: string; payload: { subject: string; url: string }; send_at: Date }[];
   // Setiap tes memakai slot unik (Senin ke-1…12 × jam 09/10/11 WIB) supaya tidak saling mengganggu.
   let slotN = 0;
@@ -162,10 +162,10 @@ describe.skipIf(!url)("booking publik (Postgres asli)", () => {
     expect([row.source, row.status, row.member_id]).toEqual(["public_link", "confirmed", ownerMember]);
     expect(new Date(row.ends_at).getTime() - new Date(row.starts_at).getTime()).toBe(3600_000);
 
-    const client = (await listClients(pool, owner())).find((c) => c.email === g.email)!;
+    const client = (await listClients(pool, owner())).find((c) => c.email === g.email!)!;
     expect(client).toMatchObject({ name: "Tamu Uji", userId: null, phone: "6281255510001" });
 
-    const mails = await outbox(g.email);
+    const mails = await outbox(g.email!);
     expect(mails.map((m) => m.template)).toEqual(["booking_notice", "booking_notice", "booking_notice"]); // konfirmasi + 24 jam + 1 jam
     const bySubject = (prefix: string) => mails.find((m) => m.payload.subject.startsWith(prefix))!;
     const confirm = bySubject("Booking terkonfirmasi");
@@ -251,7 +251,7 @@ describe.skipIf(!url)("booking publik (Postgres asli)", () => {
   it("klien tamu yang diblokir tidak bisa memesan, dengan pesan yang tidak membocorkan alasan", async () => {
     const g = guest({ startsAt: slot() });
     await bookPublic(pool, slug, "tim", g, { ...base, now: NOW });
-    const c = (await listClients(pool, owner())).find((x) => x.email === g.email)!;
+    const c = (await listClients(pool, owner())).find((x) => x.email === g.email!)!;
     await setClientBlocked(pool, owner(), c.id, true);
     const err = await bookPublic(pool, slug, "tim", { ...g, startsAt: slot() }, { ...base, now: NOW }).catch((e) => e as AppError);
     expect(err).toBeInstanceOf(AppError);
@@ -277,12 +277,12 @@ describe.skipIf(!url)("booking publik (Postgres asli)", () => {
     const g = guest({ startsAt: at });
     const r = await bookPublic(pool, slug, "konsultasi", g, { ...base, now: NOW });
     expect(await slotStarts("konsultasi")).not.toContain(iso(at));
-    const before = (await outbox(g.email)).filter((m) => m.status === "queued");
+    const before = (await outbox(g.email!)).filter((m) => m.status === "queued");
     expect(before.length).toBeGreaterThanOrEqual(3);
 
     await cancelBookingByToken(pool, r.manageToken, { ...base, now: NOW });
     expect(await slotStarts("konsultasi")).toContain(iso(at));
-    const after = await outbox(g.email);
+    const after = await outbox(g.email!);
     expect(after.filter((m) => m.status === "cancelled")).toHaveLength(2); // 24 jam + 1 jam
     expect(after.some((m) => m.payload.subject.startsWith("Booking dibatalkan"))).toBe(true);
     expect((await outbox(u.owner.email)).some((m) => m.payload.subject.startsWith("Booking dibatalkan: Tamu Uji"))).toBe(true);
@@ -309,7 +309,7 @@ describe.skipIf(!url)("booking publik (Postgres asli)", () => {
     expect(new Date(row.ends_at).getTime() - new Date(row.starts_at).getTime()).toBe(3600_000);
     expect(await slotStarts("konsultasi")).toContain(iso(first)); // slot lama bebas
     expect(await slotStarts("konsultasi")).not.toContain(iso(second));
-    const mails = await outbox(g.email);
+    const mails = await outbox(g.email!);
     expect(mails.filter((m) => m.status === "cancelled")).toHaveLength(2); // pengingat lama (24 jam + 1 jam)
     expect(mails.some((m) => m.payload.subject.startsWith("Jadwal diubah"))).toBe(true);
     expect(mails.some((m) => m.status === "queued" && new Date(m.send_at).getTime() === second.getTime() - 3600_000)).toBe(true); // pengingat baru

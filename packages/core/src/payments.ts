@@ -12,14 +12,19 @@ import { withWorkspace, type Actor } from "./workspace";
  * di transaksi yang sama (aturan #10). Panggilan jaringan ke penyedia TIDAK dilakukan di dalam transaksi basis data.
  */
 export const PAYMENT_TTL_MIN = 30;
-type Source = "webhook" | "api" | "reconcile" | "admin" | "system";
-type PaymentRow = typeof schema.payments.$inferSelect;
+export type Source = "webhook" | "api" | "reconcile" | "admin" | "system";
+export type PaymentRow = typeof schema.payments.$inferSelect;
+export type PaymentSource = Source;
 
 export interface PaymentHooks {
   /** Dipanggil di transaksi yang sama saat booking dikonfirmasi oleh pembayaran (mis. mengantre email konfirmasi). */
   bookingConfirmed?(db: Db, p: PaymentRow): Promise<void>;
   /** Booking dilepas karena pembayaran gagal/kedaluwarsa/dibatalkan. */
   bookingReleased?(db: Db, p: PaymentRow, reason: PaymentStatus): Promise<void>;
+  /** Reservasi (sewa) dikonfirmasi oleh DP yang diverifikasi. */
+  reservationConfirmed?(db: Db, p: PaymentRow): Promise<void>;
+  /** Reservasi (sewa) dilepas karena DP kedaluwarsa/dibatalkan. */
+  reservationReleased?(db: Db, p: PaymentRow, reason: PaymentStatus): Promise<void>;
 }
 
 export interface PaymentDeps {
@@ -31,7 +36,7 @@ export interface PaymentDeps {
 const nowOf = (d: PaymentDeps) => (d.now ? d.now() : new Date());
 
 /** Satu-satunya tempat status pembayaran berubah: memeriksa state machine, mengunci baris, menulis event. */
-async function transition(db: Db, p: PaymentRow, to: PaymentStatus, source: Source, raw: unknown, patch: Partial<typeof schema.payments.$inferInsert> = {}, now = new Date()): Promise<boolean> {
+export async function transition(db: Db, p: PaymentRow, to: PaymentStatus, source: Source, raw: unknown, patch: Partial<typeof schema.payments.$inferInsert> = {}, now = new Date()): Promise<boolean> {
   assertTransition(p.status as PaymentStatus, to);
   const updated = await db
     .update(schema.payments)
@@ -44,7 +49,7 @@ async function transition(db: Db, p: PaymentRow, to: PaymentStatus, source: Sour
   return true;
 }
 
-async function lockPayment(db: Db, where: ReturnType<typeof and>): Promise<PaymentRow | undefined> {
+export async function lockPayment(db: Db, where: ReturnType<typeof and>): Promise<PaymentRow | undefined> {
   const [row] = await db.select().from(schema.payments).where(where).for("update").limit(1);
   return row;
 }
@@ -111,7 +116,13 @@ export async function createPayment(deps: PaymentDeps, input: CreatePaymentInput
 
 // --- Efek pada subjek (booking) ---------------------------------------------------------------------
 
-async function confirmSubject(db: Db, deps: PaymentDeps, p: PaymentRow): Promise<"confirmed" | "late"> {
+export async function confirmSubject(db: Db, deps: PaymentDeps, p: PaymentRow): Promise<"confirmed" | "late"> {
+  if (p.subjectType === "reservation") {
+    const done = await db.update(schema.reservations).set({ status: "confirmed" }).where(and(eq(schema.reservations.id, p.subjectId), eq(schema.reservations.status, "pending"))).returning({ id: schema.reservations.id });
+    if (done.length === 0) return "late"; // pesanan sudah dilepas: DP masuk TERLAMBAT
+    await deps.hooks?.reservationConfirmed?.(db, p);
+    return "confirmed";
+  }
   if (p.subjectType !== "booking") return "confirmed";
   const updated = await db.update(schema.bookings).set({ status: "confirmed" }).where(and(eq(schema.bookings.id, p.subjectId), eq(schema.bookings.status, "pending"))).returning({ id: schema.bookings.id });
   if (updated.length === 0) return "late"; // booking sudah dilepas (kedaluwarsa/dibatalkan): dana masuk TERLAMBAT
@@ -119,7 +130,12 @@ async function confirmSubject(db: Db, deps: PaymentDeps, p: PaymentRow): Promise
   return "confirmed";
 }
 
-async function releaseSubject(db: Db, deps: PaymentDeps, p: PaymentRow, reason: PaymentStatus): Promise<void> {
+export async function releaseSubject(db: Db, deps: PaymentDeps, p: PaymentRow, reason: PaymentStatus): Promise<void> {
+  if (p.subjectType === "reservation") {
+    const done = await db.update(schema.reservations).set({ status: "cancelled" }).where(and(eq(schema.reservations.id, p.subjectId), eq(schema.reservations.status, "pending"))).returning({ id: schema.reservations.id });
+    if (done.length > 0) await deps.hooks?.reservationReleased?.(db, p, reason);
+    return;
+  }
   if (p.subjectType !== "booking") return;
   const updated = await db.update(schema.bookings).set({ status: "cancelled" }).where(and(eq(schema.bookings.id, p.subjectId), eq(schema.bookings.status, "pending"))).returning({ id: schema.bookings.id });
   if (updated.length > 0) await deps.hooks?.bookingReleased?.(db, p, reason);

@@ -1,4 +1,5 @@
 "use client";
+import { PasswordInput } from "@/components/password-input";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState, type FormEvent } from "react";
@@ -9,8 +10,10 @@ function MasukForm() {
   const params = useSearchParams();
   const next = params.get("next");
   const target = next && next.startsWith("/") && !next.startsWith("//") ? next : "/dashboard";
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(params.get("error"));
   const [busy, setBusy] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -38,18 +41,18 @@ function MasukForm() {
   }
 
   return (
-    <>
+    <div className="auth-card">
       <h1>Masuk</h1>
       <p>Masuk ke akun jadwalin Anda.</p>
       <form onSubmit={onSubmit}>
-        <label>Email<input name="email" type="email" required autoComplete="email" /></label>
-        <label>Kata sandi<input name="password" type="password" required autoComplete="current-password" /></label>
+        <label>Email<input name="email" type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} /></label>
+        <label>Kata sandi<PasswordInput name="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
         {error && <p className="error" role="alert">{error}</p>}
         <button disabled={busy}>{busy ? "Memproses…" : "Masuk"}</button>
       </form>
       <p><small><Link href="/lupa-sandi">Lupa kata sandi?</Link></small></p>
       <small>Belum punya akun? <Link href="/daftar">Daftar</Link></small>
-    </>
+    </div>
   );
 }
 

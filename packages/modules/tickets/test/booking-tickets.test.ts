@@ -39,7 +39,7 @@ describe.skipIf(!url)("booking → tiket (Postgres asli)", () => {
     return new Date(Date.UTC(2035, 2, 5 + 7 * (1 + Math.floor(i / 3)), 2 + (i % 3)));
   };
   let n = 0;
-  const guest = (extra: Record<string, unknown> = {}) => ({ name: "Tamu Tiket", email: `tamu${++n}-${sfx}@bt.local`, topic: "Konsultasi pajak", notes: "Ada pertanyaan soal SPT.", startsAt: slot(), privacyAck: true, ...extra }) as Parameters<typeof bookPublic>[3];
+  const guest = (extra: Record<string, unknown> = {}) => ({ name: "Tamu Tiket", phone: `0814${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`, email: `tamu${++n}-${sfx}@bt.local`, topic: "Konsultasi pajak", notes: "Ada pertanyaan soal SPT.", startsAt: slot(), privacyAck: true, ...extra }) as Parameters<typeof bookPublic>[3];
 
   beforeAll(async () => {
     await migrateUp(url!);
@@ -193,5 +193,35 @@ describe.skipIf(!url)("booking → tiket (Postgres asli)", () => {
       for (let i = 0; i < 10; i++) await bookAsClient(pool, heavy.id, slug, "konsultasi", { startsAt: slot(), topic: `Pesan ${i}` }, { ...opts, now: day });
       expect(await code(bookAsClient(pool, heavy.id, slug, "konsultasi", { startsAt: slot(), topic: "Kesebelas" }, { ...opts, now: day }))).toBe("rate_limited");
     });
+  });
+});
+
+describe.skipIf(!url)("fitur tiket dimatikan (Postgres asli)", () => {
+  let pool: pg.Pool;
+  const sfx2 = Math.random().toString(36).slice(2, 8);
+  it("booking publik tidak membuat tiket; tiket klien/staf ditolak", async () => {
+    const { setFeatures, DEFAULT_FEATURES } = await import("@jadwalin/core");
+    const { createTicket } = await import("../src");
+    await migrateUp(url!);
+    pool = createPool(url!);
+    try {
+      const o = await mkUser(pool, "owner", sfx2);
+      const c = await mkUser(pool, "clientA", sfx2);
+      const slug2 = `bt2-${sfx2}`;
+      await createWorkspace(pool, o.id, { name: "Tanpa Tiket", slug: slug2, features: { ...DEFAULT_FEATURES, tiket: false } });
+      const actor = { userId: o.id, slug: slug2 };
+      await setWeeklyAvailability(pool, actor, { rules: [1, 2, 3, 4, 5].map((weekday) => ({ weekday, start: "09:00", end: "16:00" })) });
+      await createMeetingType(pool, actor, { slug: "umum", title: "Umum", durationMin: 60, slotStepMin: 60, locationKind: "link" });
+      const r = await bookPublic(pool, slug2, "umum", { name: "Tamu", phone: "081499990001", email: `tamu-${sfx2}@bt.local`, topic: "Halo saja", startsAt: new Date(Date.UTC(2035, 2, 12, 3)), privacyAck: true }, { ...base });
+      expect(r.manageToken).toBeTruthy();
+      expect((await pool.query(`SELECT count(*)::int AS n FROM tickets WHERE workspace_id = (SELECT id FROM workspaces WHERE slug = $1)`, [slug2])).rows[0].n).toBe(0);
+      const code = (p: Promise<unknown>) => p.then(() => "ok", (e) => (e instanceof AppError ? e.code : `other:${e}`));
+      expect(await code(createClientTicket(pool, c.id, slug2, { title: "Pertanyaan" }, opts))).toBe("feature_disabled");
+      const cl = await pool.query(`SELECT id FROM workspace_clients WHERE workspace_id = (SELECT id FROM workspaces WHERE slug = $1) LIMIT 1`, [slug2]);
+      expect(await code(createTicket(pool, actor, { clientId: cl.rows[0].id, title: "Tiket staf" }, opts))).toBe("feature_disabled");
+      await setFeatures(pool, actor, DEFAULT_FEATURES);
+    } finally {
+      await pool.end();
+    }
   });
 });

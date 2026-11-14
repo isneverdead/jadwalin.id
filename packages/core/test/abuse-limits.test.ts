@@ -62,7 +62,7 @@ describe.skipIf(!url)("pembatasan penyalahgunaan (Postgres asli)", () => {
     return new Date(Date.UTC(2035, 2, 5 + 7 * (1 + Math.floor(i / 3)), 2 + (i % 3)));
   };
   let n = 0;
-  const guest = (extra: Record<string, unknown> = {}) => ({ name: "Tamu Abuse", email: `g${++n}-${sfx}@abuse.local`, topic: "Konsultasi", startsAt: slot(), privacyAck: true, ...extra }) as Parameters<typeof bookPublic>[3];
+  const guest = (extra: Record<string, unknown> = {}) => ({ name: "Tamu Abuse", phone: `0812${String(Math.floor(Math.random() * 1e8)).padStart(8, "0")}`, email: `g${++n}-${sfx}@abuse.local`, topic: "Konsultasi", startsAt: slot(), privacyAck: true, ...extra }) as Parameters<typeof bookPublic>[3];
 
   /** Workspace siap dipesan: jam rutin Senin 09–12 dan satu jenis pertemuan (pemilik = host). */
   async function bookableWorkspace(label: string, locationKind: "link" | "in_person" = "link", locationValue = "https://meet.example.com/x") {
@@ -152,7 +152,7 @@ describe.skipIf(!url)("pembatasan penyalahgunaan (Postgres asli)", () => {
     const w = await bookableWorkspace("lokasi", "in_person", "KLIK https://phishing.example/login SEKARANG");
     const g = guest();
     await bookPublic(pool, w.slug, "sesi", g, base);
-    const rows = (await pool.query(`SELECT payload::text AS p FROM notification_outbox WHERE recipient = $1`, [g.email.toLowerCase()])).rows;
+    const rows = (await pool.query(`SELECT payload::text AS p FROM notification_outbox WHERE recipient = $1`, [g.email!.toLowerCase()])).rows;
     expect(rows.length).toBeGreaterThan(0);
     for (const r of rows) {
       expect(r.p).not.toContain("phishing");

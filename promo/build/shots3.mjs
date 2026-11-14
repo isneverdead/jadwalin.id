@@ -1,0 +1,15 @@
+import { ctx, shot, browser, pool } from "./lib.mjs";
+const g = await ctx(390, 844, null);
+await g.goto("/demo-pajak-rahayu/review-spt"); await g.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {}); await g.waitForTimeout(5000);
+await g.locator(".cal button:not([disabled])").nth(5).click();
+await g.locator('[role="radio"]').nth(2).click();
+await g.getByLabel("Nama", { exact: true }).fill("Anton Wijaya");
+await g.getByLabel(/^Email/).fill("anton.wijaya.id@gmail.com");
+await g.getByLabel(/^Nomor HP/).fill("0877-6543-2109");
+await g.getByLabel("Topik").fill("Review SPT Tahunan Orang Pribadi 2025");
+await g.getByLabel(/pemberitahuan privasi/).check();
+await g.waitForFunction(() => document.querySelector('input[name="cf-turnstile-response"]')?.value, null, { timeout: 30000 });
+await g.getByRole("button", { name: /Lanjut ke pembayaran/ }).click();
+await g.waitForTimeout(6000);
+await shot(g, null, "m4-bayar", { full: true });
+await browser.close(); await pool.end();

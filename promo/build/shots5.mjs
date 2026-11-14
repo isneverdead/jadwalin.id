@@ -1,0 +1,16 @@
+import { ctx, shot, browser, pool } from "./lib.mjs";
+const g = await ctx(390, 844, null);
+await g.goto("/demo-pajak-rahayu/konsultasi"); await g.waitForLoadState("networkidle", { timeout: 6000 }).catch(() => {}); await g.waitForTimeout(5000);
+await g.locator(".cal button:not([disabled])").nth(7).click();
+await g.locator('[role="radio"]').nth(4).click();
+await g.getByLabel("Nama", { exact: true }).fill("Agus Salim");
+await g.getByLabel(/^Email/).fill("agus.salim.id@gmail.com");
+await g.getByLabel(/^Nomor HP/).fill("0818-1122-3344");
+await g.getByLabel("Topik").fill("Pelaporan PPN usaha katering");
+await g.getByLabel(/pemberitahuan privasi/).check();
+await g.waitForFunction(() => document.querySelector('input[name="cf-turnstile-response"]')?.value, null, { timeout: 30000 });
+await g.getByRole("button", { name: /Pesan jadwal/ }).click();
+await g.waitForTimeout(6000);
+console.log(g.url());
+await shot(g, null, "m3-kelola-booking", { full: true });
+await browser.close(); await pool.end();

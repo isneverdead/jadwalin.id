@@ -16,13 +16,14 @@ export default defineConfig({
   reporter: [["list"]],
   use: { baseURL: `http://localhost:${PORT}`, trace: "retain-on-failure", screenshot: "only-on-failure" },
   webServer: {
-    command: `pnpm exec next build && pnpm exec next start -p ${PORT}`,
+    command: `pnpm exec next build && pnpm exec next start -p ${PORT}`, // NEXT_DIST_DIR (env di bawah) memisahkan hasil build dari server dev
     url: `http://localhost:${PORT}/masuk`,
     timeout: 240_000,
     reuseExistingServer: !process.env.CI,
     env: {
       ...(process.env as Record<string, string>),
       // E2E berjalan tanpa Cloudflare di depan: tanpa ini produksi menolak pemesanan karena tak ada cf-connecting-ip.
+      NEXT_DIST_DIR: ".next-e2e",
       TRUST_PROXY: "none",
       BETTER_AUTH_URL: `http://localhost:${PORT}`,
       BETTER_AUTH_SECRET: "e2e-secret-e2e-secret-e2e-secret-1234",

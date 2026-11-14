@@ -57,33 +57,37 @@ async function newUser(browser: Browser, name: string, mail: string) {
 test("klien membuka tiket → staf menangani → lampiran → meeting → klien menutup", async ({ browser }) => {
   // ===== Pemilik: workspace, undang staf, jenis pertemuan =====
   const owner = await newUser(browser, "Pemilik E2E", email("owner"));
-  await owner.getByLabel("Nama bisnis").fill("Praktik E2E");
-  await owner.getByLabel(/^Nama link/).fill(slug);
-  await owner.getByRole("button", { name: "Buat workspace" }).click();
-  await expect(owner.getByRole("heading", { name: "Praktik E2E" })).toBeVisible();
+  await owner.goto("/dashboard/bisnis-baru");
+  await owner.getByText("Mulai dari kosong", { exact: true }).click();
+  await owner.locator('input[name="name"]').fill("Praktik E2E");
+  await owner.locator('input[name="slug"]').fill(slug);
+  await owner.getByRole("button", { name: "Buat halaman jadwal saya" }).click();
+  await expect(owner.locator(".side-biz").getByText("Praktik E2E")).toBeVisible();
 
+  await owner.getByText("+ Undang anggota baru").click();
   await owner.getByLabel("Email", { exact: true }).fill(email("staf"));
   await owner.getByRole("button", { name: "Kirim undangan" }).click();
   await expect(owner.getByText(email("staf"))).toBeVisible(); // muncul di "Undangan tertunda"
 
   await owner.goto(`/w/${slug}/jadwal`);
-  await owner.getByLabel("Judul").fill("Konsultasi E2E");
-  await owner.getByLabel("Kode (untuk link)").fill("konsultasi");
-  await owner.getByLabel("Link / nomor / alamat").fill("https://meet.example.com/e2e-ruang");
-  await clickAndSettle(owner, "Tambah jenis pertemuan");
+  await owner.getByText("+ Tambah layanan baru").click();
+  await owner.getByLabel("Nama layanan").last().fill("Konsultasi E2E");
+  await owner.getByLabel("Kode untuk link").fill("konsultasi");
+  await owner.getByLabel("Link / nomor / alamat").last().fill("https://meet.example.com/e2e-ruang");
+  await clickAndSettle(owner, "Tambah layanan");
   await expect(owner.getByText("Konsultasi E2E").first()).toBeVisible();
 
   // ===== Staf: daftar, terima undangan, atur ketersediaan =====
   const staf = await newUser(browser, "Staf E2E", email("staf"));
   await staf.goto(await emailLink(email("staf"), "workspace_invite", /\/undangan\//));
   await staf.getByRole("button", { name: "Terima undangan" }).click();
-  await expect(staf.getByText("peran Anda: staff")).toBeVisible();
+  await expect(staf.locator(".side-biz").getByText("Staf")).toBeVisible();
 
   await staf.goto(`/w/${slug}/jadwal`);
   for (const day of ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"]) {
     await staf.getByLabel(day, { exact: true }).check();
   }
-  await clickAndSettle(staf, "Simpan jam rutin");
+  await clickAndSettle(staf, "Simpan jam kerja");
   await expect(staf.getByText("Pratinjau slot tersedia")).toBeVisible();
 
   // ===== Klien: daftar lalu buka tiket lewat halaman publik =====
@@ -106,7 +110,7 @@ test("klien membuka tiket → staf menangani → lampiran → meeting → klien 
   await expect(staf.getByText("ditangani Staf E2E")).toBeVisible();
   await staf.getByLabel("Status", { exact: true }).selectOption({ label: "Diproses" });
   await staf.getByRole("button", { name: "Ubah status" }).click();
-  await expect(staf.getByText("Diproses · prioritas")).toBeVisible();
+  await expect(staf.locator(".page-head .badge").getByText("Diproses", { exact: true })).toBeVisible();
 
   const SECRET = "CATATAN-INTERNAL-E2E-RAHASIA";
   await staf.getByLabel("Balas").fill(SECRET);
@@ -176,7 +180,7 @@ test("klien membuka tiket → staf menangani → lampiran → meeting → klien 
   // ===== Staf melihat hasil akhir =====
   await staf.reload();
   await expect(staf.getByText("Terima kasih, dokumen sudah saya terima.")).toBeVisible();
-  await expect(staf.getByText("Ditutup · prioritas")).toBeVisible();
+  await expect(staf.locator(".page-head .badge").getByText("Ditutup", { exact: true })).toBeVisible();
 
   // ===== Riwayat lengkap di database + email notifikasi antre =====
   const ws = (await pool.query(`SELECT id FROM workspaces WHERE slug = $1`, [slug])).rows[0].id;

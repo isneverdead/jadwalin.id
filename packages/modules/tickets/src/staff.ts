@@ -10,6 +10,7 @@ import {
   type Actor,
   type StorageAdapter,
   type UploadRequest,
+  requireFeature,
 } from "@jadwalin/core";
 import { schema, type Db } from "@jadwalin/db";
 import { and, asc, desc, eq, ilike, inArray, ne, sql } from "drizzle-orm";
@@ -58,6 +59,7 @@ export async function createTicket(pool: pg.Pool, actor: Actor, input: CreateTic
   if (!PRIORITIES.includes(priority)) throw new AppError("invalid_input", "Prioritas tidak valid.");
 
   return withWorkspace(pool, actor, "staff", async (db, access) => {
+    await requireFeature(db, access, "tiket");
     const client = await loadClient(db, input.clientId);
     if (!client) throw new AppError("not_found", "Klien tidak ditemukan.");
     const assignee = input.assigneeMemberId ? await assertMember(db, input.assigneeMemberId) : null;

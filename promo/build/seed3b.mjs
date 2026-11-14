@@ -1,0 +1,18 @@
+import { ctx, shot, browser, pool, settle } from "./lib.mjs";
+const D = "/Users/fariz/Documents/PORTFOLIO/Jadwalin.id/promo/build/scan";
+const o = await ctx(1280, 900, "owner");
+await o.goto("/dashboard/bisnis-baru"); await o.waitForLoadState("networkidle", { timeout: 8000 }).catch(() => {}); await o.waitForTimeout(2500);
+await o.getByText("Sewa kamera & perlengkapan", { exact: false }).first().click();
+await o.waitForTimeout(800);
+await o.getByLabel(/^Nama usaha/).fill("Bintang Kamera Rental");
+await o.locator('input[name="slug"]').fill("demo-bintang-kamera");
+await o.getByRole("button", { name: /Buat halaman sewa saya/ }).click();
+await o.waitForURL(/\/w\/demo-bintang-kamera/, { timeout: 30000 });
+await o.waitForTimeout(2000);
+console.log(o.url());
+const m = await pool.query("select rp.id, rp.name from rental_products rp join workspaces w on w.id=rp.workspace_id where w.slug='demo-bintang-kamera'");
+console.log(m.rows);
+const g = await ctx(390, 844, null);
+await shot(g, "/demo-bintang-kamera", "r-pub", { dir: D, full: true });
+await shot(g, `/demo-bintang-kamera/produk/${m.rows[0].id}`, "r-prod", { dir: D, full: true, wait: 3000 });
+await browser.close(); await pool.end();

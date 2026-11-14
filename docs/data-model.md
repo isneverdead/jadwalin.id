@@ -112,3 +112,16 @@ Izin: klien hanya melihat tiket dengan `requester_user_id` miliknya dan komentar
 - `refunds`: kunci idempoten ke penyedia unik; refund hanya dari status `paid/partially_refunded`.
 - RLS klien/tamu: `ext_payment_read` membatasi baca pembayaran ke booking yang terlihat bagi mereka; akun pembayaran dan refund tertutup total.
 - Migrasi 0022–0024. Worker mendapat hak sempit: kolom tertentu `bookings` (status saja untuk `pending → confirmed|cancelled`) dan kolom judul `meeting_types`.
+
+## Pembayaran manual (M7 revisi; ADR 0002)
+- Arah berubah: tanpa gateway. Penyedia jasa mengatur `payment_methods` (bank/QRIS/e-wallet/lainnya); pelanggan membayar di luar sistem dan mengunggah bukti (`payment_proofs`); staf memverifikasi. `payments` dipakai dengan `provider = 'manual'`, `platform_fee_idr = 0`.
+- Status baru `awaiting_verification`: `pending → awaiting_verification → paid | pending (ditolak)`; staf juga boleh `pending → paid` (tunai). Jejak tetap di `payment_events` (aturan #10).
+- `payment_proofs.status`: `draft` (unggahan diminta; mengikat berkas ke pembayaran) → `submitted` → `accepted | rejected`. `files.uploaded_by` NULL untuk berkas pelanggan tanpa akun.
+- RLS (migrasi 0025–0027): metode bayar hanya terbaca pelanggan yang memegang token booking (tamu) atau bookingnya sendiri (klien); bukti tertutup bagi pelanggan; penulisan pelanggan hanya lewat worker (`asWorker`) setelah token divalidasi.
+- Jendela bayar 3 jam (`MANUAL_HOLD_MIN`); 'menunggu verifikasi' tidak dikedaluwarsakan; ditolak → +60 menit.
+
+## Tambahan: sewa barang (ADR 0003; migrasi 0029–0031)
+- `workspaces.features` (jsonb): fitur per halaman (`tiket`, `pembayaran`, `berkas`, `sewa`); kunci yang hilang = aktif, kecuali `sewa` (bawaan mati).
+- Core: `resources` (id, workspace_id, name, units 1–50, active) dan `reservations` (resource_id, unit_no, client_id, `during` tstzrange, status pending|confirmed|active|completed|cancelled|rejected, `token_hash` unik, notes). Exclusion constraint `reservations_no_overlap` pada (resource_id, unit_no, during) untuk status pending/confirmed/active.
+- Modul rental: `rental_products` (resource_id unik, nama, kategori, deskripsi, harga per hari, uang jaminan, foto, urutan, aktif) dan `rental_orders` (reservation_id unik, product_id, start_date, end_date, days, harga/hari, total, catatan pelanggan/staf).
+- RLS: keempat tabel tenant_isolation + `client_denied`; tamu: baca katalog aktif/reservasi aktif, buat reservasi `pending`, baca/batalkan lewat token; foto produk lewat `public_files_read`.

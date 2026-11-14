@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { addClient, AppError, createWorkspace, inviteMember, listMembers, listMyClientWorkspaces, listMyWorkspaces, removeMember, withWorkspace } from "../src";
+import { addClient, AppError, createWorkspace, deleteWorkspace, getPublicWorkspace, inviteMember, listMembers, listMyClientWorkspaces, listMyWorkspaces, removeMember, withWorkspace } from "../src";
 import { inviteAndAccept } from "./helpers";
 
 const url = process.env.DATABASE_URL;
@@ -64,6 +64,13 @@ describe.skipIf(!url)("workspace, anggota, klien (Postgres asli)", () => {
     expect(members.map((m) => m.role).sort()).toEqual(["admin", "owner", "staff"]);
   });
 
+  it("anggota yang punya workspace lain tidak muncul ganda atau membawa keanggotaan workspace lain", async () => {
+    const other = await createWorkspace(pool, u.owner, { name: "Ruang kedua", slug: `dua-${sfx}` });
+    const members = await listMembers(pool, owner());
+    expect(members.filter((m) => m.userId === u.owner)).toHaveLength(1);
+    expect(members.map((m) => m.id)).not.toContain((await pool.query(`SELECT id FROM workspace_members WHERE workspace_id = $1`, [other.id])).rows[0].id);
+  });
+
   it("izin peran: staf tak bisa mengundang, admin tak bisa mengundang admin", async () => {
     const asStaff = { userId: u.staff, slug: slugA };
     const asAdmin = { userId: u.admin, slug: slugA };
@@ -115,5 +122,23 @@ describe.skipIf(!url)("workspace, anggota, klien (Postgres asli)", () => {
     const none = await withTenant(pool, { userId: u.outsider }, (db) => db.execute(sql`SELECT * FROM workspace_members WHERE workspace_id = ${wsA}`));
     expect(none.rows).toHaveLength(0);
     expect(randomUUID()).toBeTruthy();
+  });
+
+  it("hapus halaman: hanya pemilik + konfirmasi nama; hilang dari semua akses, slug dibebaskan, audit tercatat", async () => {
+    const slug = `hapus-${sfx}`;
+    await createWorkspace(pool, u.owner, { name: "Toko Hapus", slug });
+    await inviteAndAccept(pool, { userId: u.owner, slug }, { userId: u.admin, email: email("admin"), role: "admin" });
+    expect(await code(deleteWorkspace(pool, { userId: u.admin, slug }, "Toko Hapus"))).toBe("forbidden");
+    expect(await code(deleteWorkspace(pool, { userId: u.outsider, slug }, "Toko Hapus"))).toBe("not_found");
+    expect(await code(deleteWorkspace(pool, { userId: u.owner, slug }, "salah"))).toBe("invalid_input");
+    expect((await getPublicWorkspace(pool, slug))?.name).toBe("Toko Hapus");
+
+    await deleteWorkspace(pool, { userId: u.owner, slug }, " Toko Hapus ");
+    expect(await getPublicWorkspace(pool, slug)).toBeNull();
+    expect((await listMyWorkspaces(pool, u.owner)).some((w) => w.slug === slug)).toBe(false);
+    expect(await code(withWorkspace(pool, { userId: u.owner, slug }, "owner", async () => 1))).toBe("not_found");
+    const audit = await pool.query(`SELECT count(*)::int AS n FROM audit_log WHERE action = 'workspace.deleted' AND diff->>'slug' = $1`, [slug]);
+    expect(audit.rows[0].n).toBe(1);
+    await createWorkspace(pool, u.owner, { name: "Pakai Ulang", slug }); // slug bebas lagi
   });
 });
