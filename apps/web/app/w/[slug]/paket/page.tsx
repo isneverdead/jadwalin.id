@@ -1,4 +1,4 @@
-import { PAID_PLAN_IDS, PERIODS, PLANS, PLATFORM_BANK, PLATFORM_WHATSAPP, SETUP_PROMO, getSubscription, listMyWorkspaces, planPrice, waLink, type InvoiceView } from "@jadwalin/core";
+import { PAID_PLAN_IDS, PERIODS, PLANS, PLATFORM_BANK, PLATFORM_WHATSAPP, SETUP_PROMO, getSubscription, listMyWorkspaces, planPrice, trialState, waLink, type InvoiceView } from "@jadwalin/core";
 import { notFound } from "next/navigation";
 import { ConfirmButton } from "@/components/confirm-button";
 import { CopyButton } from "@/components/copy-button";
@@ -20,6 +20,7 @@ export default async function PaketPage({ params, searchParams }: { params: Prom
   if (!mine || (mine.role !== "owner" && mine.role !== "admin")) notFound();
   const sub = await getSubscription(getPool(), { userId: user.id, slug });
   const isOwner = mine.role === "owner";
+  const trial = trialState(sub.plan, sub.planUntil);
   const inv = sub.open;
 
   // Konteks untuk WhatsApp pemilik platform: siapa, usaha apa, apa yang dibayar, dan sudah sampai mana.
@@ -44,9 +45,9 @@ export default async function PaketPage({ params, searchParams }: { params: Prom
       <section className="panel">
         <div className="panel-head"><h2>Paket saat ini</h2><span className={`badge ${sub.active ? "ok" : ""}`}>{PLANS[sub.plan].label}</span></div>
         <p>
-          {sub.plan === "gratis" ? "Anda memakai paket Gratis." : sub.active ? <>Paket {PLANS[sub.plan].label} aktif sampai <strong>{fmtDateTime(sub.planUntil!, mine.timezone)}</strong>.</> : <>Paket {PLANS[sub.plan].label} sudah berakhir{sub.planUntil ? ` pada ${fmtDateTime(sub.planUntil, mine.timezone)}` : ""}. Perpanjang di bawah.</>}
+          {sub.plan === "gratis" ? (trial.onTrial ? (trial.expired ? <>Masa uji gratis berakhir pada {fmtDateTime(sub.planUntil!, mine.timezone)}. Halaman publik ditutup sampai Anda memilih paket.</> : <>Masa uji gratis 14 hari, berakhir <strong>{fmtDateTime(sub.planUntil!, mine.timezone)}</strong> ({trial.daysLeft} hari lagi).</>) : "Anda memakai paket Gratis.") : sub.active ? <>Paket {PLANS[sub.plan].label} aktif sampai <strong>{fmtDateTime(sub.planUntil!, mine.timezone)}</strong>.</> : <>Paket {PLANS[sub.plan].label} sudah berakhir{sub.planUntil ? ` pada ${fmtDateTime(sub.planUntil, mine.timezone)}` : ""}. Perpanjang di bawah.</>}
         </p>
-        <small>Garansi 30 hari tanpa kontrak. Batas tiap paket belum diberlakukan di aplikasi.</small>
+        <small>Garansi 30 hari tanpa kontrak.</small>
       </section>
 
       {inv ? (

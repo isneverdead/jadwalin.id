@@ -41,6 +41,7 @@ export function middleware(request: NextRequest) {
 
   const headers = new Headers(request.headers);
   headers.set("x-nonce", nonce);
+  headers.set("x-pathname", request.nextUrl.pathname);
   headers.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({ request: { headers } });

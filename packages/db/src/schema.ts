@@ -117,7 +117,8 @@ export const workspaces = pgTable("workspaces", {
   contactPhone: text("contact_phone"),
   /** Paket langganan platform: gratis | pro | bisnis. Diubah hanya lewat verifikasi superadmin (ADR 0005). */
   plan: text("plan").notNull().default("gratis"),
-  planUntil: timestamp("plan_until", { withTimezone: true }),
+  /** Paket gratis: akhir masa uji 14 hari (default saat dibuat). NULL pada paket gratis = tanpa batas (diatur admin). */
+  planUntil: timestamp("plan_until", { withTimezone: true }).default(sql`now() + interval '14 days'`),
   createdAt: createdAt(),
 });
 

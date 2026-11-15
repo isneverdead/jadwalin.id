@@ -1,11 +1,24 @@
 import { schema, withTenant, type Db } from "@jadwalin/db";
-import { and, eq, isNull } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { randomUUID } from "node:crypto";
 import type pg from "pg";
 import { claimGuestRecords, claimGuestRecordsIn } from "./claim";
 import { AppError, isUniqueViolation } from "./errors";
 import { DEFAULT_FEATURES, parseFeatures, type Features } from "./features";
 import { normalizePhone } from "./phone";
+
+/** Masa uji paket Gratis (hari). Diterapkan lewat default kolom `workspaces.plan_until`; NULL pada paket gratis = tanpa batas (diatur admin). */
+export const TRIAL_DAYS = 14;
+
+/** Syarat SQL untuk pintu publik: usaha bermasa uji yang sudah habis tidak tampil. Paket berbayar tidak ikut dikunci di sini. */
+export const trialNotExpiredSql = sql`NOT (${schema.workspaces.plan} = 'gratis' AND ${schema.workspaces.planUntil} IS NOT NULL AND ${schema.workspaces.planUntil} < now())`;
+
+/** Status masa uji untuk tampilan dashboard. `daysLeft` dibulatkan ke atas; null bila bukan masa uji. */
+export function trialState(plan: string, planUntil: Date | null, now = new Date()): { onTrial: boolean; expired: boolean; daysLeft: number | null } {
+  if (plan !== "gratis" || !planUntil) return { onTrial: false, expired: false, daysLeft: null };
+  const ms = planUntil.getTime() - now.getTime();
+  return { onTrial: true, expired: ms <= 0, daysLeft: ms <= 0 ? 0 : Math.ceil(ms / 86_400_000) };
+}
 
 /** Mencegah pembuatan workspace massal (bahan baku penyalahgunaan email). */
 export const MAX_OWNED_WORKSPACES = 5;
@@ -93,7 +106,7 @@ export async function createWorkspace(
 export async function listMyWorkspaces(pool: pg.Pool, userId: string) {
   return withTenant(pool, { userId }, (db) =>
     db
-      .select({ id: schema.workspaces.id, slug: schema.workspaces.slug, name: schema.workspaces.name, timezone: schema.workspaces.timezone, features: schema.workspaces.features, role: schema.workspaceMembers.role })
+      .select({ id: schema.workspaces.id, slug: schema.workspaces.slug, name: schema.workspaces.name, timezone: schema.workspaces.timezone, features: schema.workspaces.features, plan: schema.workspaces.plan, planUntil: schema.workspaces.planUntil, role: schema.workspaceMembers.role })
       .from(schema.workspaceMembers)
       .innerJoin(schema.workspaces, eq(schema.workspaces.id, schema.workspaceMembers.workspaceId))
       .where(and(eq(schema.workspaceMembers.userId, userId), isNull(schema.workspaces.deletedAt)))
@@ -251,7 +264,7 @@ export async function withClientAccess<T>(
   fn: (db: Db, access: ClientAccess) => Promise<T>,
 ): Promise<T> {
   const [ws] = await withTenant(pool, { userId, publicSlug: slug }, (db) =>
-    db.select({ id: schema.workspaces.id, name: schema.workspaces.name, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug), isNull(schema.workspaces.deletedAt), isNull(schema.workspaces.blockedAt))).limit(1),
+    db.select({ id: schema.workspaces.id, name: schema.workspaces.name, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug), isNull(schema.workspaces.deletedAt), isNull(schema.workspaces.blockedAt), trialNotExpiredSql)).limit(1),
   );
   if (!ws) throw new AppError("not_found", "Halaman tidak ditemukan.");
 
@@ -287,7 +300,7 @@ const NIL_UUID = "00000000-0000-0000-0000-000000000000";
 /** Halaman publik jadwalin.id/<slug>: hanya nama dan zona waktu; berlaku untuk pengunjung yang belum masuk. */
 export async function getPublicWorkspace(pool: pg.Pool, slug: string, userId?: string) {
   const [ws] = await withTenant(pool, { userId: userId ?? NIL_UUID, publicSlug: slug.toLowerCase() }, (db) =>
-    db.select({ name: schema.workspaces.name, slug: schema.workspaces.slug, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug.toLowerCase()), isNull(schema.workspaces.deletedAt), isNull(schema.workspaces.blockedAt))).limit(1),
+    db.select({ name: schema.workspaces.name, slug: schema.workspaces.slug, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug.toLowerCase()), isNull(schema.workspaces.deletedAt), isNull(schema.workspaces.blockedAt), trialNotExpiredSql)).limit(1),
   );
   return ws ? { ...ws, features: parseFeatures(ws.features) } : null;
 }

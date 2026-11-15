@@ -52,7 +52,7 @@ export default async function Home() {
             <Link className="btn" href="/daftar">Coba gratis</Link>
             <a className="btn btn-ghost" href={WA} target="_blank" rel="noopener">Chat WhatsApp</a>
           </div>
-          <p className="lp-fine">Promo setup sampai 31 Des 2026 untuk 10 bisnis pertama · garansi 30 hari · tanpa kontrak</p>
+          <p className="lp-fine">Promo setup sampai 31 Des 2026 untuk 10 bisnis pertama · coba gratis 14 hari · garansi 30 hari · tanpa kontrak</p>
         </div>
 
         <div className="lp-mock" aria-hidden="true">

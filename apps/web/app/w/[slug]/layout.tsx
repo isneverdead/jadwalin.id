@@ -1,7 +1,8 @@
-import { countOpenBookingRequests, getContactPhone, listManualPayments } from "@jadwalin/core";
+import { countOpenBookingRequests, getContactPhone, listManualPayments, trialState } from "@jadwalin/core";
 import { countPendingOrders } from "@jadwalin/module-rental";
 import { listTickets } from "@jadwalin/module-tickets";
 import Link from "next/link";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import { DashNav, type NavItem } from "@/components/dash-nav";
@@ -20,6 +21,10 @@ export default async function UsahaLayout({ children, params }: { children: Reac
   if (!mine) notFound();
   const actor = { userId: user.id, slug };
   const canManage = mine.role === "owner" || mine.role === "admin";
+  // Masa uji paket Gratis (14 hari): setelah habis, dashboard terkunci kecuali halaman Paket.
+  const trial = trialState(mine.plan, mine.planUntil);
+  const onPaket = ((await headers()).get("x-pathname") ?? "").startsWith(`/w/${slug}/paket`);
+  const locked = trial.expired && !onPaket;
   // Lencana "perlu perhatian"; kegagalan ambil data tidak boleh merusak halaman.
   const f = mine.features;
   const [payments, tickets, pendingRentals, openChanges] = await Promise.all([
@@ -63,10 +68,21 @@ export default async function UsahaLayout({ children, params }: { children: Reac
         </>
       }
     >
+      {trial.onTrial && !trial.expired && (trial.daysLeft ?? 99) <= 7 && canManage && (
+        <p className="notice warn" role="status"><b>Masa uji gratis tinggal {trial.daysLeft} hari.</b> Setelah itu halaman publik Anda tidak bisa dibuka pelanggan. <a href={`${base}/paket`}>Pilih paket</a></p>
+      )}
+      {locked ? (
+        <section className="panel" role="alert">
+          <div className="panel-head"><h2>Masa uji gratis sudah berakhir</h2></div>
+          <p>Halaman publik {mine.name} ditutup sementara dan dashboard dikunci. Data Anda tetap aman dan kembali normal begitu paket aktif.</p>
+          {canManage ? <p><a className="btn" href={`${base}/paket`}>Pilih paket</a></p> : <p>Minta pemilik usaha untuk memilih paket.</p>}
+        </section>
+      ) : (<>
       {!contactPhone && (
         <p className="notice warn" role="status"><b>Nomor WhatsApp usaha belum diisi (wajib).</b> Pelanggan memakainya untuk menghubungi Anda dari halaman booking. <a href={`${base}/pengaturan`}>Isi sekarang</a></p>
       )}
       {children}
+      </>)}
     </DashShell>
   );
 }
