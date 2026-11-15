@@ -17,7 +17,7 @@ export function getPool(): pg.Pool {
 export function getAuth(): Auth {
   if (!g.__auth) {
     const env = loadWebEnv();
-    g.__auth = createAuth({ pool: getPool(), secret: env.BETTER_AUTH_SECRET, baseURL: env.BETTER_AUTH_URL, plugins: [nextCookies()], ipAddressHeaders: loadProxyTrust() === "cloudflare" ? ["cf-connecting-ip"] : undefined });
+    g.__auth = createAuth({ pool: getPool(), secret: env.BETTER_AUTH_SECRET, baseURL: env.BETTER_AUTH_URL, plugins: [nextCookies()], signupClosed: process.env.SIGNUP_CLOSED === "true", ipAddressHeaders: loadProxyTrust() === "cloudflare" ? ["cf-connecting-ip"] : undefined });
   }
   return g.__auth;
 }
@@ -29,6 +29,13 @@ const getSession = cache(async () => {
   // Akun yang ditangguhkan superadmin (ADR 0005): sesinya dianggap tidak ada.
   if (session && (await isUserSuspended(getPool(), session.user.id).catch(() => false))) return null;
   return session;
+});
+
+/** Pengguna yang sedang masuk tetapi ditangguhkan (untuk layar blokir merah), atau null. */
+export const suspendedUser = cache(async () => {
+  const session = await getRawSession().catch(() => null);
+  if (!session) return null;
+  return (await isUserSuspended(getPool(), session.user.id).catch(() => false)) ? session.user : null;
 });
 
 export async function requireUser() {

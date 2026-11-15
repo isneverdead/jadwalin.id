@@ -4,7 +4,8 @@ import { Suspense, type ReactNode } from "react";
 import { Figtree, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { NavProgress } from "@/components/nav-progress";
-import { currentUser, userIsSuperadmin } from "@/lib/server";
+import { PLATFORM_WHATSAPP } from "@jadwalin/core";
+import { currentUser, suspendedUser, userIsSuperadmin } from "@/lib/server";
 import { LogoutButton } from "./logout-button";
 
 const figtree = Figtree({ subsets: ["latin"], variable: "--f-figtree", display: "swap" });
@@ -31,6 +32,19 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const user = await currentUser().catch(() => null);
   const superadmin = user ? await userIsSuperadmin(user.id).catch(() => false) : false;
   const nonce = (await headers()).get("x-nonce") ?? undefined;
+  const blocked = await suspendedUser();
+  if (blocked) {
+    const wa = `https://wa.me/${PLATFORM_WHATSAPP}?text=${encodeURIComponent("Halo admin jadwalin.id, akun saya diblokir. Mohon bantuannya.")}`;
+    return (
+      <html lang="id" className={`${figtree.variable} ${geistMono.variable}`}>
+        <body style={{ margin: 0, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, padding: 24, background: "#b91c1c", color: "#fff", textAlign: "center", fontFamily: "var(--f-figtree), system-ui, sans-serif" }}>
+          <h1 style={{ margin: 0, fontSize: 28 }}>Akun Anda diblokir</h1>
+          <p style={{ margin: 0, maxWidth: 360, lineHeight: 1.5 }}>Akses ke jadwalin.id untuk akun ini dinonaktifkan. Silakan hubungi kami lewat WhatsApp.</p>
+          <a href={wa} style={{ background: "#fff", color: "#b91c1c", fontWeight: 700, padding: "14px 24px", borderRadius: 12, textDecoration: "none" }}>Hubungi lewat WhatsApp</a>
+        </body>
+      </html>
+    );
+  }
   return (
     <html lang="id" suppressHydrationWarning className={`${figtree.variable} ${geistMono.variable}`}>
       <head>

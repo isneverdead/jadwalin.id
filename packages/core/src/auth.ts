@@ -26,10 +26,12 @@ export interface AuthOptions {
   plugins?: BetterAuthPlugin[];
   /** Header IP yang dipercaya untuk pembatas laju (mis. ["cf-connecting-ip"] di belakang Cloudflare). */
   ipAddressHeaders?: string[];
+  /** Pendaftaran akun baru ditutup (SIGNUP_CLOSED=true). */
+  signupClosed?: boolean;
 }
 
 /** Auth platform: email + kata sandi, sesi di DB sendiri, rate limit tersimpan di DB. */
-export function createAuth({ pool, secret, baseURL, plugins, ipAddressHeaders }: AuthOptions) {
+export function createAuth({ pool, secret, baseURL, plugins, ipAddressHeaders, signupClosed }: AuthOptions) {
   const db = drizzle(pool, { schema });
   const allowedOrigin = new URL(baseURL).origin;
   return betterAuth({
@@ -122,6 +124,9 @@ export function createAuth({ pool, secret, baseURL, plugins, ipAddressHeaders }:
         // hanya berlaku bila ada cookie). Pemanggilan server-ke-server lewat auth.api tidak punya request dan dilewati.
         if (req && req.method !== "GET" && req.method !== "HEAD" && req.headers.get("origin") !== allowedOrigin) {
           throw new APIError("FORBIDDEN", { message: "Origin tidak diizinkan." });
+        }
+        if (signupClosed && ctx.path === "/sign-up/email") {
+          throw new APIError("FORBIDDEN", { message: "Pendaftaran sedang ditutup." });
         }
         // Pendaftaran dari browser wajib menyatakan persetujuan Syarat & Privasi (pemanggilan server-ke-server dilewati).
         if (req && ctx.path === "/sign-up/email" && (ctx.body as { termsAccepted?: unknown } | undefined)?.termsAccepted !== true) {
