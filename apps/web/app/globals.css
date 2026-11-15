@@ -1353,3 +1353,10 @@ h3.h3-tip { justify-content: space-between; margin: 0 0 12px; }
 /* Tombol pesan di halaman booking publik: menempel di dasar layar selama formulir terlihat. */
 .book-cta { position: sticky; bottom: 0; z-index: 5; margin: 8px -4px 0; padding: 12px 4px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--bg) 28%); }
 .book-cta .cta { width: 100%; }
+
+/* Dasar layar booking: ringkasan slot terpilih di atas tombol pesan. */
+.book-cta-sel { display: flex; justify-content: space-between; gap: 12px; font-size: 0.86rem; color: var(--muted); margin-bottom: 8px; }
+.book-cta-sel b { color: var(--fg); text-align: right; }
+.book-cta { background: var(--bg); border-top: 1px solid var(--line); box-shadow: 0 -8px 16px -12px rgb(0 0 0 / 0.25); margin: 8px -4px 0; }
+.pay-amount { display: grid; gap: 2px; margin: 4px 0 8px; }
+.pay-amount strong { font-size: 2.2rem; letter-spacing: -0.03em; line-height: 1.1; }

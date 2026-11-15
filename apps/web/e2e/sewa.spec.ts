@@ -54,6 +54,7 @@ test("sewa barang: template rental, foto produk, tamu memesan tanggal, pemilik m
   await owner.getByText("Rental motor / skuter", { exact: true }).click();
   await owner.locator('input[name="name"]').fill("Rental Motor E2E");
   await owner.locator('input[name="slug"]').fill(slug);
+  await owner.locator('input[name="contactPhone"]').fill("081255500000");
   await owner.getByRole("button", { name: "Buat halaman sewa saya" }).click();
   await expect(owner.locator(".side-biz")).toBeVisible();
 

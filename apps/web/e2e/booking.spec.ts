@@ -91,6 +91,7 @@ test("tamu (hanya nomor HP, tanpa email) memesan lewat link publik: slot hilang,
   await owner.getByText("Mulai dari kosong", { exact: true }).click();
   await owner.locator('input[name="name"]').fill("Praktik Booking E2E");
   await owner.locator('input[name="slug"]').fill(slug);
+  await owner.locator('input[name="contactPhone"]').fill("081255500000");
   await owner.getByRole("button", { name: "Buat halaman jadwal saya" }).click();
   await expect(owner.locator(".side-biz").getByText("Praktik Booking E2E")).toBeVisible();
 

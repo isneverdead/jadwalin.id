@@ -1,5 +1,5 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export interface PickerDay {
   /** Tanggal lokal workspace "YYYY-MM-DD". */
@@ -32,6 +32,9 @@ export function SlotPicker({ days, todayKey, tzName, name = "startsAt" }: { days
   const idx = months.indexOf(month);
   const times = date ? byDate.get(date) ?? [] : [];
   const chosen = times.find((t) => t.iso === iso);
+  // Kabari tombol pesan yang menempel di dasar layar (BookCta) tentang slot yang sedang dipilih.
+  const summary = chosen && date ? `${new Intl.DateTimeFormat("id-ID", { timeZone: "UTC", weekday: "short", day: "numeric", month: "short" }).format(new Date(`${date}T12:00:00Z`))} · ${chosen.label} ${tzName}` : null;
+  useEffect(() => { window.dispatchEvent(new CustomEvent("slot-picked", { detail: summary })); }, [summary]);
 
   return (
     <div className="picker" data-slots={days.flatMap((d) => d.times.map((t) => t.iso)).join(",")}>

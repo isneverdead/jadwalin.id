@@ -59,6 +59,7 @@ test("fitur per usaha: template menyarankan, bisa diubah saat membuat, dan Penga
   await owner.locator('input[name="name"]').fill("Salon Fitur E2E");
   await expect(owner.locator(".phone-url-text")).toContainText(`/${slug}`.slice(0, 1)); // pratinjau ponsel hidup
   await owner.locator('input[name="slug"]').fill(slug);
+  await owner.locator('input[name="contactPhone"]').fill("081255500000");
   await owner.getByRole("button", { name: "Buat halaman jadwal saya" }).click();
 
   await expect(owner.locator(".side-biz")).toBeVisible(); // halaman selesai dibuat
@@ -98,6 +99,7 @@ test("hapus usaha: wajib ketik nama; setelah dihapus hilang dari dasbor dan hala
   await owner.getByText("Salon rambut", { exact: true }).click();
   await owner.locator('input[name="name"]').fill("Salon Dihapus");
   await owner.locator('input[name="slug"]').fill(hslug);
+  await owner.locator('input[name="contactPhone"]').fill("081255500000");
   await owner.getByRole("button", { name: "Buat halaman jadwal saya" }).click();
   await expect(owner.locator(".side-biz")).toBeVisible();
 
@@ -118,6 +120,7 @@ test("hapus usaha: wajib ketik nama; setelah dihapus hilang dari dasbor dan hala
   await owner.getByText("Salon rambut", { exact: true }).click();
   await owner.locator('input[name="name"]').fill("Salon Baru");
   await owner.locator('input[name="slug"]').fill(hslug);
+  await owner.locator('input[name="contactPhone"]').fill("081255500000");
   await owner.getByRole("button", { name: "Buat halaman jadwal saya" }).click();
   await expect(owner.locator(".side-biz")).toBeVisible();
 });

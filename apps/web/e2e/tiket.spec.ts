@@ -61,6 +61,7 @@ test("klien membuka tiket → staf menangani → lampiran → meeting → klien 
   await owner.getByText("Mulai dari kosong", { exact: true }).click();
   await owner.locator('input[name="name"]').fill("Praktik E2E");
   await owner.locator('input[name="slug"]').fill(slug);
+  await owner.locator('input[name="contactPhone"]').fill("081255500000");
   await owner.getByRole("button", { name: "Buat halaman jadwal saya" }).click();
   await expect(owner.locator(".side-biz").getByText("Praktik E2E")).toBeVisible();
 

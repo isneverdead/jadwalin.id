@@ -80,6 +80,13 @@ export default async function ManageBookingPage({ params, searchParams }: { para
 
       {manual && !cancelled && (
         <section className="pay-box" aria-label="Pembayaran">
+          <ol className="timeline" aria-label="Tahap booking">
+            <Step state="done" title="Booking dibuat">{when}</Step>
+            <Step state={manualDue ? "now" : "done"} title={manualDue ? `Bayar DP ${fmtIdr(manual.payment.amountIdr)}` : "DP dibayar"}>{manualDue ? `Slot ditahan sampai ${fmtDateTime(manual.payment.expiresAt, tz)}` : undefined}</Step>
+            <Step state={manual.payment.status === "paid" ? "done" : manualWait ? "now" : "todo"} title="Bukti diperiksa penyedia">{manualWait ? "Biasanya dalam beberapa jam" : undefined}</Step>
+            <Step state={manual.payment.status === "paid" ? "done" : "todo"} title="Booking terkonfirmasi" />
+          </ol>
+          {manualDue && <p className="pay-amount"><small>Bayar DP tepat sebesar</small><strong>{fmtIdr(manual.payment.amountIdr)}</strong></p>}
           {manual.payment.status === "paid" && <p className="badge">Pembayaran terkonfirmasi</p>}
           {manualWait && <p>Terima kasih. Penyedia jasa sedang memeriksa bukti pembayaran Anda. Slot tetap ditahan untuk Anda; buka kembali halaman ini untuk melihat konfirmasinya.</p>}
           {manualDue && (

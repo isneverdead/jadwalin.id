@@ -6,6 +6,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Turnstile } from "@/components/turnstile";
 import { bookAction } from "@/lib/booking-actions";
+import { BookCta } from "@/components/book-cta";
 import { SlotPicker } from "@/components/slot-picker";
 import { fmtIdr, toPickerDays, tzLabel } from "@/lib/format";
 import { currentUser, getPool } from "@/lib/server";
@@ -108,9 +109,9 @@ export default async function BookPage({
                 {!user && <small className="fine">Tanpa akun: setelah memesan Anda mendapat tautan kelola (batal/ubah jadwal). Simpan tautannya; Anda juga bisa mengirimkannya ke WhatsApp sendiri setelah memesan.</small>}
               </fieldset>
               {/* Tombol pesan menempel di dasar layar supaya selalu terlihat, tidak perlu menggulir sampai bawah. */}
-              <div className="book-cta">
+              <BookCta>
                 <button className="cta" disabled={!paymentReady}>{mt.depositIdr > 0 ? `Lanjut ke pembayaran · ${fmtIdr(mt.depositIdr)}` : "Pesan jadwal"}</button>
-              </div>
+              </BookCta>
             </form>
           )}
         </section>
