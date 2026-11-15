@@ -75,11 +75,10 @@ async function chooseSlot(page: Page, iso: string) {
   await expect(page.locator('input[name="startsAt"]')).toHaveValue(iso);
 }
 
-async function fillGuestForm(page: Page, startsAt: string, topic: string) {
+async function fillGuestForm(page: Page, startsAt: string) {
   await chooseSlot(page, startsAt);
   await page.getByLabel("Nama", { exact: true }).fill("Tamu E2E");
   await page.getByLabel(/^Nomor HP/).fill("0812-5550-9999");
-  await page.getByLabel("Topik").fill(topic);
   await page.getByLabel(/^Catatan/).fill("Mohon siapkan ringkasan.");
   await page.getByLabel(/Saya telah membaca/).check();
 }
@@ -145,7 +144,7 @@ test("tamu (hanya nomor HP, tanpa email) memesan lewat link publik: slot hilang,
   const [first, second, third] = [slots[80]!, slots[81]!, slots[82]!];
 
   // Perlindungan bot: tanpa token Turnstile, pemesanan DITOLAK dan tidak ada booking tercatat.
-  await fillGuestForm(guest, first, "Konsultasi SPT tamu");
+  await fillGuestForm(guest, first);
   await guest.evaluate(() => document.querySelectorAll('[name="cf-turnstile-response"]').forEach((e) => e.remove()));
   await guest.getByRole("button", { name: "Pesan jadwal" }).click();
   await expect(guest.getByText(/Verifikasi keamanan gagal/)).toBeVisible();
@@ -153,7 +152,7 @@ test("tamu (hanya nomor HP, tanpa email) memesan lewat link publik: slot hilang,
 
   // Honeypot: bot yang mengisi kolom tersembunyi diarahkan pergi tanpa booking.
   await guest.reload();
-  await fillGuestForm(guest, first, "Konsultasi SPT tamu");
+  await fillGuestForm(guest, first);
   await guest.evaluate(() => { (document.querySelector('[name="website"]') as HTMLInputElement).value = "http://spam.example"; });
   await expect(guest.locator('input[name="cf-turnstile-response"]')).not.toHaveValue("", { timeout: 30_000 });
   await guest.getByRole("button", { name: "Pesan jadwal" }).click();
@@ -162,7 +161,7 @@ test("tamu (hanya nomor HP, tanpa email) memesan lewat link publik: slot hilang,
 
   // ===== Pemesanan sungguhan (Turnstile uji Cloudflare lolos) =====
   await guest.goto(`/${slug}/konsultasi`);
-  await fillGuestForm(guest, first, "Konsultasi SPT tamu");
+  await fillGuestForm(guest, first);
   await expect(guest.locator('input[name="cf-turnstile-response"]')).not.toHaveValue("", { timeout: 30_000 });
   await guest.getByRole("button", { name: "Pesan jadwal" }).click();
   await expect(guest.getByRole("heading", { name: "Booking terkonfirmasi" })).toBeVisible();
@@ -188,7 +187,7 @@ test("tamu (hanya nomor HP, tanpa email) memesan lewat link publik: slot hilang,
 
   // ===== Tiket otomatis untuk host; meeting tertaut =====
   await owner.goto(`/w/${slug}/tiket`);
-  await owner.getByRole("link", { name: /Booking: Konsultasi Publik — Konsultasi SPT tamu/ }).click();
+  await owner.getByRole("link", { name: /Booking: Konsultasi Publik — Konsultasi Publik/ }).click();
   await expect(owner.getByRole("heading", { name: /Booking: Konsultasi Publik/ })).toBeVisible();
   await expect(owner.getByText("ditangani Pemilik Booking")).toBeVisible();
   await expect(owner.getByText(/terjadwal · /)).toBeVisible();

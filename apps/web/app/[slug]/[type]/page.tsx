@@ -82,7 +82,6 @@ export default async function BookPage({
                         </select>
                       </label>
                     )}
-                    <label>Topik<input name="topic" required minLength={3} maxLength={200} placeholder="Apa yang ingin dibahas?" /></label>
                   </>
                 ) : (
                   <>
@@ -90,10 +89,11 @@ export default async function BookPage({
                       <label>Nama<input name="name" required minLength={2} maxLength={100} autoComplete="name" placeholder="Nama lengkap" /></label>
                       <label><span>Nomor HP / WhatsApp <small>· kabar tentang booking Anda</small></span><input name="phone" type="tel" required autoComplete="tel" inputMode="tel" placeholder="0812…" /></label>
                     </div>
-                    <label>Topik<input name="topic" required minLength={3} maxLength={200} placeholder="Apa yang ingin dibahas?" /></label>
                   </>
                 )}
-                <label><span>Catatan <small>(opsional)</small></span><textarea name="notes" rows={3} maxLength={2000} placeholder="Info tambahan untuk kami" /></label>
+                {/* Tanpa isian "Topik": judul layanan dipakai sebagai topik (tidak relevan untuk salon, lapangan, dll). */}
+                <input type="hidden" name="topic" value={mt.title} />
+                <label><span>Pesan untuk {workspace.name} <small>(opsional)</small></span><textarea name="notes" rows={2} maxLength={2000} placeholder="mis. preferensi, alergi, atau pertanyaan" /></label>
 
                 {/* Honeypot: manusia tidak melihatnya; bot biasanya mengisinya. */}
                 <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", height: 0, overflow: "hidden" }}>
@@ -105,9 +105,12 @@ export default async function BookPage({
                 )}
                 {!user && turnstile.siteKey && <Turnstile siteKey={turnstile.siteKey} nonce={nonce} />}
                 {error && <p className="error" role="alert">{error}</p>}
-                <button className="cta" disabled={!paymentReady}>{mt.depositIdr > 0 ? `Lanjut ke pembayaran · ${fmtIdr(mt.depositIdr)}` : "Pesan jadwal"}</button>
                 {!user && <small className="fine">Tanpa akun: setelah memesan Anda mendapat tautan kelola (batal/ubah jadwal). Simpan tautannya; Anda juga bisa mengirimkannya ke WhatsApp sendiri setelah memesan.</small>}
               </fieldset>
+              {/* Tombol pesan menempel di dasar layar supaya selalu terlihat, tidak perlu menggulir sampai bawah. */}
+              <div className="book-cta">
+                <button className="cta" disabled={!paymentReady}>{mt.depositIdr > 0 ? `Lanjut ke pembayaran · ${fmtIdr(mt.depositIdr)}` : "Pesan jadwal"}</button>
+              </div>
             </form>
           )}
         </section>

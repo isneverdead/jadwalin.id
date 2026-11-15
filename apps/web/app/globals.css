@@ -1349,3 +1349,7 @@ h3.h3-tip { justify-content: space-between; margin: 0 0 12px; }
   .svc-edit-row .se-del { grid-column: 1 / -1; justify-self: end; align-self: center; }
   .svc-edit-row label, .svc-edit-row select, .svc-edit-row input { min-width: 0; }
 }
+
+/* Tombol pesan di halaman booking publik: menempel di dasar layar selama formulir terlihat. */
+.book-cta { position: sticky; bottom: 0; z-index: 5; margin: 8px -4px 0; padding: 12px 4px calc(12px + env(safe-area-inset-bottom)); background: linear-gradient(to bottom, transparent, var(--bg) 28%); }
+.book-cta .cta { width: 100%; }
