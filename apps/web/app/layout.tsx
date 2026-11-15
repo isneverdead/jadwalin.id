@@ -38,9 +38,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     return (
       <html lang="id" className={`${figtree.variable} ${geistMono.variable}`}>
         <body style={{ margin: 0, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, padding: 24, background: "#b91c1c", color: "#fff", textAlign: "center", fontFamily: "var(--f-figtree), system-ui, sans-serif" }}>
-          <h1 style={{ margin: 0, fontSize: 28 }}>Selamat! Kamu menang hadiah: layar merah.</h1>
-          <p style={{ margin: 0, maxWidth: 360, lineHeight: 1.5 }}>Hadiahnya nggak bisa ditukar, nggak bisa di-refresh, dan nggak bisa ditutup. Muat ulang sepuluh kali pun tetap ketemu aku lagi. Kalau udah capek, tombol di bawah satu-satunya yang bisa kamu pencet. Sabar ya, nanti juga bosan sendiri 😇</p>
-          <a href={wa} style={{ background: "#fff", color: "#b91c1c", fontWeight: 700, padding: "14px 24px", borderRadius: 12, textDecoration: "none" }}>Rengek ke admin di WhatsApp</a>
+          <h1 style={{ margin: 0, fontSize: 28 }}>ngapain njir</h1>
+          <p style={{ margin: 0, maxWidth: 360, lineHeight: 1.5 }}>Yaudah, emang nggak bisa. Mau gimana lagi?</p>
+          <a href={wa} style={{ background: "#fff", color: "#b91c1c", fontWeight: 700, padding: "14px 24px", borderRadius: 12, textDecoration: "none" }}>Yaudah, Hubungi Kami</a>
         </body>
       </html>
     );
