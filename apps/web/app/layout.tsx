@@ -38,8 +38,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
     return (
       <html lang="id" className={`${figtree.variable} ${geistMono.variable}`}>
         <body style={{ margin: 0, minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 20, padding: 24, background: "#b91c1c", color: "#fff", textAlign: "center", fontFamily: "var(--f-figtree), system-ui, sans-serif" }}>
-          <h1 style={{ margin: 0, fontSize: 28 }}>Eits, mau ke mana? Nggak ada menu buat kamu.</h1>
-          <p style={{ margin: 0, maxWidth: 360, lineHeight: 1.5 }}>Udah login pun tetap percuma. Mau klik-klik semua juga hasilnya sama: layar merah ini. Sengaja, biar kamu ngerasain nyebelinnya akun yang kamu bikin sendiri. Satu-satunya jalan keluar cuma tombol di bawah, silakan dipencet kalau berani 😌</p>
+          <h1 style={{ margin: 0, fontSize: 28 }}>Selamat! Kamu menang hadiah: layar merah.</h1>
+          <p style={{ margin: 0, maxWidth: 360, lineHeight: 1.5 }}>Hadiahnya nggak bisa ditukar, nggak bisa di-refresh, dan nggak bisa ditutup. Muat ulang sepuluh kali pun tetap ketemu aku lagi. Kalau udah capek, tombol di bawah satu-satunya yang bisa kamu pencet. Sabar ya, nanti juga bosan sendiri 😇</p>
           <a href={wa} style={{ background: "#fff", color: "#b91c1c", fontWeight: 700, padding: "14px 24px", borderRadius: 12, textDecoration: "none" }}>Rengek ke admin di WhatsApp</a>
         </body>
       </html>
