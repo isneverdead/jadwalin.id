@@ -8,7 +8,7 @@ import { withWorkspace, type Actor } from "./workspace";
  * Versi dokumen legal yang sedang berlaku. Naikkan setiap kali isi Syarat/Privasi berubah material; persetujuan lama
  * tetap tercatat dengan versinya sendiri sebagai bukti.
  */
-export const LEGAL_VERSION = "2026-11-draft-1";
+export const LEGAL_VERSION = "2026-11-draft-2";
 
 // --- Hak subjek data (UU PDP): ekspor + permintaan penghapusan ------------------------------------
 

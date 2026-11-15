@@ -11,6 +11,7 @@ export default function Page() {
         <li><strong>Penyelenggara:</strong> Fariz Akbar Shalahhuddin, pelaku usaha perorangan</li>
         <li><strong>Bentuk usaha dan NIB:</strong> usaha perorangan, belum berbadan hukum dan belum memiliki NIB</li>
         <li><strong>Alamat:</strong> layanan daring. Alamat korespondensi dapat diminta lewat email di bawah.</li>
+        <li><strong>WhatsApp:</strong> <a href="https://wa.me/628567500965">0856-7500-965</a></li>
         <li><strong>Email kontak dan pelindungan data:</strong> <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a></li>
       </ul>
       <p>Pertanyaan, keluhan, permintaan akses atau penghapusan data, dan permintaan refund dapat dikirim ke email tersebut. Kami menanggapi dalam waktu wajar dan paling lambat 30 hari untuk permintaan terkait data pribadi.</p>
