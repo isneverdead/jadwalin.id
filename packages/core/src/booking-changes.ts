@@ -264,7 +264,7 @@ export async function recoverBooking(pool: pg.Pool, slug: string, input: { code:
   await consumeRateLimit(pool, rateKey("recover-phone", `${key}|${phone}`), { limit: 5, windowSec: 3600, now, message: "Terlalu banyak percobaan untuk nomor ini. Coba lagi nanti." });
   const token = newToken(24);
   const ok = await withWorker(pool, async (db) => {
-    const [ws] = await db.select({ id: schema.workspaces.id }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, key), sql`${schema.workspaces.deletedAt} IS NULL`)).limit(1);
+    const [ws] = await db.select({ id: schema.workspaces.id }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, key), sql`${schema.workspaces.deletedAt} IS NULL`, sql`${schema.workspaces.blockedAt} IS NULL`)).limit(1);
     if (!ws) return false;
     const clients = await db.select({ id: schema.workspaceClients.id }).from(schema.workspaceClients).where(and(eq(schema.workspaceClients.workspaceId, ws.id), eq(schema.workspaceClients.phone, phone)));
     if (clients.length === 0) return false;

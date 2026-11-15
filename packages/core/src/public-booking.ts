@@ -64,7 +64,7 @@ export async function withPublicWorkspace<T>(
 ): Promise<T> {
   const key = slug.toLowerCase();
   const [ws] = await withTenant(pool, { userId: NIL_UUID, publicSlug: key, actor: "public" }, (db) =>
-    db.select({ id: schema.workspaces.id, name: schema.workspaces.name, slug: schema.workspaces.slug, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, key), isNull(schema.workspaces.deletedAt))).limit(1),
+    db.select({ id: schema.workspaces.id, name: schema.workspaces.name, slug: schema.workspaces.slug, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, key), isNull(schema.workspaces.deletedAt), isNull(schema.workspaces.blockedAt))).limit(1),
   );
   if (!ws) throw new AppError("not_found", "Halaman tidak ditemukan.");
   const info: PublicWorkspace = { workspaceId: ws.id, name: ws.name, slug: ws.slug, timezone: ws.timezone, features: parseFeatures(ws.features) };

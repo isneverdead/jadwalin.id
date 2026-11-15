@@ -281,6 +281,13 @@
       "when": 1794686723924,
       "tag": "0039_platform_subscription",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1794690000000,
+      "tag": "0040_workspace_blocked",
+      "breakpoints": true
     }
   ]
 }

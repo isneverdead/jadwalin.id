@@ -107,6 +107,8 @@ export const workspaces = pgTable("workspaces", {
   features: jsonb("features").$type<Record<string, boolean>>().notNull().default({ tiket: true, pembayaran: true, berkas: true }),
   /** Soft delete: usaha dihapus pemilik. Data (pembayaran, audit) dipertahankan; usaha tak lagi muncul dan slug dibebaskan. */
   deletedAt: timestamp("deleted_at", { withTimezone: true }),
+  /** Diisi saat pemilik ditangguhkan: usaha disembunyikan dari halaman publik. */
+  blockedAt: timestamp("blocked_at", { withTimezone: true }),
   /** Ubah jadwal oleh pelanggan: 'auto' (langsung berlaku) atau 'approval' (menunggu persetujuan penyedia). ADR 0004. */
   rescheduleMode: text("reschedule_mode").notNull().default("auto"),
   /** Batas minimal (jam sebelum mulai) agar pelanggan boleh mengubah/membatalkan sendiri. 0 = tanpa batas. */

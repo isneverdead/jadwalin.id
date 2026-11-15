@@ -371,6 +371,9 @@ export async function adminSetSuspended(pool: pg.Pool, userId: string, allowed: 
     if (!t) throw new AppError("not_found", "Pengguna tidak ditemukan.");
     if (allowed.map((e) => e.toLowerCase()).includes(t.email.toLowerCase())) throw new AppError("invalid_input", "Akun superadmin tidak bisa ditangguhkan.");
     await db.update(schema.users).set({ suspendedAt: suspended ? now : null }).where(eq(schema.users.id, targetUserId));
+    // Usaha yang dimiliki akun ini ikut disembunyikan dari halaman publik (dipulihkan saat akun diaktifkan lagi).
+    const owned = await db.select({ id: schema.workspaceMembers.workspaceId }).from(schema.workspaceMembers).where(and(eq(schema.workspaceMembers.userId, targetUserId), eq(schema.workspaceMembers.role, "owner")));
+    for (const w of owned) await db.update(schema.workspaces).set({ blockedAt: suspended ? now : null }).where(eq(schema.workspaces.id, w.id));
     await platformAudit(db, { actorUserId: me.id, action: suspended ? "user.suspended" : "user.reinstated", entityType: "user", entityId: targetUserId });
   });
 }

@@ -251,7 +251,7 @@ export async function withClientAccess<T>(
   fn: (db: Db, access: ClientAccess) => Promise<T>,
 ): Promise<T> {
   const [ws] = await withTenant(pool, { userId, publicSlug: slug }, (db) =>
-    db.select({ id: schema.workspaces.id, name: schema.workspaces.name, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug), isNull(schema.workspaces.deletedAt))).limit(1),
+    db.select({ id: schema.workspaces.id, name: schema.workspaces.name, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug), isNull(schema.workspaces.deletedAt), isNull(schema.workspaces.blockedAt))).limit(1),
   );
   if (!ws) throw new AppError("not_found", "Halaman tidak ditemukan.");
 
@@ -287,7 +287,7 @@ const NIL_UUID = "00000000-0000-0000-0000-000000000000";
 /** Halaman publik jadwalin.id/<slug>: hanya nama dan zona waktu; berlaku untuk pengunjung yang belum masuk. */
 export async function getPublicWorkspace(pool: pg.Pool, slug: string, userId?: string) {
   const [ws] = await withTenant(pool, { userId: userId ?? NIL_UUID, publicSlug: slug.toLowerCase() }, (db) =>
-    db.select({ name: schema.workspaces.name, slug: schema.workspaces.slug, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug.toLowerCase()), isNull(schema.workspaces.deletedAt))).limit(1),
+    db.select({ name: schema.workspaces.name, slug: schema.workspaces.slug, timezone: schema.workspaces.timezone, features: schema.workspaces.features }).from(schema.workspaces).where(and(eq(schema.workspaces.slug, slug.toLowerCase()), isNull(schema.workspaces.deletedAt), isNull(schema.workspaces.blockedAt))).limit(1),
   );
   return ws ? { ...ws, features: parseFeatures(ws.features) } : null;
 }
