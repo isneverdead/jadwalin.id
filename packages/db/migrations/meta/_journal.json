@@ -288,6 +288,13 @@
       "when": 1794690000000,
       "tag": "0040_workspace_blocked",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1794700000000,
+      "tag": "0041_plans_setup",
+      "breakpoints": true
     }
   ]
 }

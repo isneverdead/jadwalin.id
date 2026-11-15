@@ -6,7 +6,7 @@ import type pg from "pg";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   AppError, PLANS, S3Storage, addMonthsUtc, adminInvoiceProofUrl, adminListInvoices, adminListUsers, adminOverview, adminReviewInvoice, adminSetPlan, adminSetSuspended, cancelUpgradeInvoice,
-  createUpgradeInvoice, createWorkspace, getSubscription, invoiceCode, isSuperadmin, isUserSuspended, planPrice, requestPlanProofUpload, submitPlanProof,
+  createUpgradeInvoice, createWorkspace, getSubscription, invoiceCode, isSuperadmin, isUserSuspended, planPrice, setupPrice, requestPlanProofUpload, submitPlanProof,
 } from "../src";
 import { inviteAndAccept } from "./helpers";
 
@@ -28,7 +28,7 @@ describe.skipIf(!url || !haveS3)("platform: paket, upgrade (transfer manual), su
   const NOW = new Date("2037-05-10T00:00:00Z");
 
   async function pay(plan: string, period: string) {
-    const inv = await createUpgradeInvoice(pool, owner(), { plan, period });
+    const inv = await createUpgradeInvoice(pool, owner(), { plan, period }, NOW);
     const { upload } = await requestPlanProofUpload(pool, owner(), storage, inv.id, { filename: "bukti.png", mime: "image/png", sizeBytes: PNG.byteLength });
     expect((await fetch(upload.url, { method: "PUT", headers: upload.headers, body: PNG as unknown as BodyInit })).ok).toBe(true);
     await submitPlanProof(pool, owner(), storage, inv.id, "Transfer dari BCA a.n. Pemilik", NOW);
@@ -54,9 +54,14 @@ describe.skipIf(!url || !haveS3)("platform: paket, upgrade (transfer manual), su
   afterAll(async () => pool?.end());
 
   it("harga: tahunan = 10x bulanan; kode tagihan stabil; tambah bulan aman di akhir bulan", () => {
-    expect(planPrice("pro", 1)).toBe(79000);
-    expect(planPrice("pro", 12)).toBe(790000);
-    expect(planPrice("bisnis", 12)).toBe(PLANS.bisnis.monthlyIdr * 10);
+    expect(planPrice("studio", 1)).toBe(250000);
+    expect(planPrice("studio", 12)).toBe(2500000);
+    expect(planPrice("lapangan", 12)).toBe(PLANS.lapangan.monthlyIdr * 10);
+    expect(planPrice("perorangan", 12)).toBe(399000); // satu-satunya paket yang tahunannya bukan 10x
+    expect(setupPrice("studio", new Date("2026-12-31T00:00:00Z"), 0)).toBe(1000000); // promo
+    expect(setupPrice("studio", new Date("2026-12-31T00:00:00Z"), 10)).toBe(2000000); // kuota promo habis
+    expect(setupPrice("studio", new Date("2027-01-02T00:00:00Z"), 0)).toBe(2000000); // promo berakhir
+    expect(setupPrice("perorangan", new Date("2027-01-02T00:00:00Z"), 0)).toBe(0); // tanpa setup
     expect(invoiceCode("abc")).toMatch(/^INV-[A-Z0-9]{6}$/);
     expect(invoiceCode("abc")).toBe(invoiceCode("abc"));
     expect(addMonthsUtc(new Date("2037-01-31T00:00:00Z"), 1).toISOString().slice(0, 10)).toBe("2037-02-28");
@@ -64,16 +69,16 @@ describe.skipIf(!url || !haveS3)("platform: paket, upgrade (transfer manual), su
   });
 
   it("tagihan upgrade: hanya pemilik; paket/periode divalidasi; satu tagihan terbuka; nominal dari daftar harga", async () => {
-    expect(await code(createUpgradeInvoice(pool, owner(), { plan: "gratis", period: "bulanan" }))).toBe("invalid_input");
-    expect(await code(createUpgradeInvoice(pool, owner(), { plan: "pro", period: "mingguan" }))).toBe("invalid_input");
-    expect(await code(createUpgradeInvoice(pool, { userId: u.staff, slug }, { plan: "pro", period: "bulanan" }))).toBe("forbidden");
-    expect(await code(createUpgradeInvoice(pool, { userId: u.outsider, slug }, { plan: "pro", period: "bulanan" }))).toBe("not_found");
-    const inv = await createUpgradeInvoice(pool, owner(), { plan: "pro", period: "tahunan" });
-    expect(inv.amountIdr).toBe(790000);
+    expect(await code(createUpgradeInvoice(pool, owner(), { plan: "gratis", period: "bulanan" }, NOW))).toBe("invalid_input");
+    expect(await code(createUpgradeInvoice(pool, owner(), { plan: "studio", period: "mingguan" }, NOW))).toBe("invalid_input");
+    expect(await code(createUpgradeInvoice(pool, { userId: u.staff, slug }, { plan: "studio", period: "bulanan" }, NOW))).toBe("forbidden");
+    expect(await code(createUpgradeInvoice(pool, { userId: u.outsider, slug }, { plan: "studio", period: "bulanan" }, NOW))).toBe("not_found");
+    const inv = await createUpgradeInvoice(pool, owner(), { plan: "studio", period: "tahunan" }, NOW);
+    expect(inv.amountIdr).toBe(4500000); // setup normal 2.000.000 (2037, promo berakhir) + tahunan 2.500.000
     expect(inv.code).toMatch(/^INV-/);
-    expect(await code(createUpgradeInvoice(pool, owner(), { plan: "bisnis", period: "bulanan" }))).toBe("invalid_input"); // satu tagihan terbuka
+    expect(await code(createUpgradeInvoice(pool, owner(), { plan: "lapangan", period: "bulanan" }, NOW))).toBe("invalid_input"); // satu tagihan terbuka
     const sub = await getSubscription(pool, owner(), NOW);
-    expect(sub).toMatchObject({ plan: "gratis", active: false, open: { id: inv.id, status: "pending", amountIdr: 790000, hasProof: false } });
+    expect(sub).toMatchObject({ plan: "gratis", active: false, open: { id: inv.id, status: "pending", amountIdr: 4500000, setupIdr: 2000000, hasProof: false } });
     expect(await code(submitPlanProof(pool, owner(), storage, inv.id, undefined, NOW))).toBe("invalid_input"); // belum ada bukti
     await cancelUpgradeInvoice(pool, owner(), inv.id);
     expect(await code(cancelUpgradeInvoice(pool, owner(), inv.id))).toBe("invalid_input");
@@ -81,19 +86,19 @@ describe.skipIf(!url || !haveS3)("platform: paket, upgrade (transfer manual), su
   });
 
   it("ALUR UPGRADE: bayar → bukti → superadmin melihat bukti → setuju → paket aktif; perpanjang dari tanggal berakhir; ganti paket mulai dari sekarang", async () => {
-    const inv = await pay("pro", "bulanan");
+    const inv = await pay("studio", "bulanan");
     expect((await getSubscription(pool, owner(), NOW)).open).toMatchObject({ status: "awaiting_verification", hasProof: true, proofNote: "Transfer dari BCA a.n. Pemilik" });
     expect(await code(requestPlanProofUpload(pool, owner(), storage, inv.id, { filename: "x.png", mime: "image/png", sizeBytes: 5 }))).toBe("invalid_input"); // sudah dikirim
 
     const queue = await adminListInvoices(pool, u.admin, allowed);
     const row = queue.find((r) => r.id === inv.id)!;
-    expect(row).toMatchObject({ status: "awaiting_verification", workspaceSlug: slug, requesterName: "owner", plan: "pro", amountIdr: 79000, currentPlan: "gratis", proofMime: "image/png" });
+    expect(row).toMatchObject({ status: "awaiting_verification", workspaceSlug: slug, requesterName: "owner", plan: "studio", amountIdr: 2250000, currentPlan: "gratis", proofMime: "image/png" });
     const dl = await adminInvoiceProofUrl(pool, u.admin, allowed, storage, inv.id);
     expect((await fetch(dl.url)).ok).toBe(true);
 
-    expect(await adminReviewInvoice(pool, u.admin, allowed, inv.id, { approve: true }, NOW)).toMatchObject({ status: "paid", plan: "pro" });
+    expect(await adminReviewInvoice(pool, u.admin, allowed, inv.id, { approve: true }, NOW)).toMatchObject({ status: "paid", plan: "studio" });
     let sub = await getSubscription(pool, owner(), NOW);
-    expect(sub.plan).toBe("pro");
+    expect(sub.plan).toBe("studio");
     expect(sub.active).toBe(true);
     expect(sub.planUntil!.toISOString().slice(0, 10)).toBe("2037-06-10");
     expect(sub.history[0]).toMatchObject({ status: "paid" });
@@ -101,29 +106,29 @@ describe.skipIf(!url || !haveS3)("platform: paket, upgrade (transfer manual), su
     expect((await pool.query(`SELECT 1 FROM audit_log WHERE workspace_id IS NULL AND action = 'plan.activated' AND diff->>'workspaceId' = $1`, [wsId])).rowCount).toBe(1);
 
     // Perpanjang paket yang sama: dihitung dari tanggal berakhir, bukan dari sekarang.
-    const inv2 = await pay("pro", "tahunan");
+    const inv2 = await pay("studio", "tahunan");
     await adminReviewInvoice(pool, u.admin, allowed, inv2.id, { approve: true }, NOW);
     sub = await getSubscription(pool, owner(), NOW);
     expect(sub.planUntil!.toISOString().slice(0, 10)).toBe("2038-06-10");
 
     // Ganti ke paket lain: mulai dari sekarang.
-    const inv3 = await pay("bisnis", "bulanan");
+    const inv3 = await pay("lapangan", "bulanan");
     await adminReviewInvoice(pool, u.admin, allowed, inv3.id, { approve: true }, NOW);
     sub = await getSubscription(pool, owner(), NOW);
-    expect(sub.plan).toBe("bisnis");
+    expect(sub.plan).toBe("lapangan");
     expect(sub.planUntil!.toISOString().slice(0, 10)).toBe("2037-06-10");
   });
 
   it("tolak: alasan wajib, paket tidak berubah, pemilik boleh membuat tagihan baru", async () => {
     const before = await getSubscription(pool, owner(), NOW);
-    const inv = await pay("pro", "bulanan");
+    const inv = await pay("studio", "bulanan");
     expect(await code(adminReviewInvoice(pool, u.admin, allowed, inv.id, { approve: false, reason: "" }, NOW))).toBe("invalid_input");
     expect(await adminReviewInvoice(pool, u.admin, allowed, inv.id, { approve: false, reason: "Nominal tidak sesuai" }, NOW)).toEqual({ status: "rejected" });
     const after = await getSubscription(pool, owner(), NOW);
     expect(after.plan).toBe(before.plan);
     expect(after.planUntil?.getTime()).toBe(before.planUntil?.getTime());
     expect(after.history[0]).toMatchObject({ status: "rejected", rejectReason: "Nominal tidak sesuai" });
-    await createUpgradeInvoice(pool, owner(), { plan: "pro", period: "bulanan" });
+    await createUpgradeInvoice(pool, owner(), { plan: "studio", period: "bulanan" }, NOW);
     await cancelUpgradeInvoice(pool, owner(), (await getSubscription(pool, owner(), NOW)).open!.id);
   });
 
@@ -139,11 +144,11 @@ describe.skipIf(!url || !haveS3)("platform: paket, upgrade (transfer manual), su
     expect(await isSuperadmin(pool, u.unverified, allowed)).toBe(false);
     const ov = await adminOverview(pool, u.admin, allowed, NOW);
     expect(ov.usersTotal).toBeGreaterThanOrEqual(6);
-    expect(ov.workspacesByPlan.bisnis).toBeGreaterThanOrEqual(1);
+    expect(ov.workspacesByPlan.lapangan).toBeGreaterThanOrEqual(1);
   });
 
   it("pemilik TIDAK bisa mengubah paketnya sendiri (hak kolom di DB), walau lewat SQL role aplikasi", async () => {
-    const attempt = await withTenant(pool, { userId: u.owner, workspaceId: wsId }, (db) => db.update(schema.workspaces).set({ plan: "bisnis", planUntil: new Date("2099-01-01") }).where(eq(schema.workspaces.id, wsId))).then(() => "ok", () => "ditolak");
+    const attempt = await withTenant(pool, { userId: u.owner, workspaceId: wsId }, (db) => db.update(schema.workspaces).set({ plan: "lapangan", planUntil: new Date("2099-01-01") }).where(eq(schema.workspaces.id, wsId))).then(() => "ok", () => "ditolak");
     expect(attempt).toBe("ditolak");
     // Kolom lain tetap bisa diubah role aplikasi (mis. nama).
     const fine = await withTenant(pool, { userId: u.owner, workspaceId: wsId }, (db) => db.update(schema.workspaces).set({ name: "Usaha Platform" })).then(() => "ok", (e) => `x:${(e as Error).message}`);
@@ -167,7 +172,7 @@ describe.skipIf(!url || !haveS3)("platform: paket, upgrade (transfer manual), su
     await adminSetPlan(pool, u.admin, allowed, wsId, "gratis", null);
     expect((await getSubscription(pool, owner(), NOW)).plan).toBe("gratis");
     expect(await code(adminSetPlan(pool, u.admin, allowed, wsId, "platinum", null))).toBe("invalid_input");
-    expect(await code(adminSetPlan(pool, u.admin, allowed, randomUUID(), "pro", NOW))).toBe("not_found");
+    expect(await code(adminSetPlan(pool, u.admin, allowed, randomUUID(), "studio", NOW))).toBe("not_found");
 
     expect(await isUserSuspended(pool, u.victim)).toBe(false);
     await adminSetSuspended(pool, u.admin, allowed, u.victim, true);

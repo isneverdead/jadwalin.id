@@ -1,4 +1,4 @@
-import { PERIODS, PLANS, PLATFORM_BANK, PLATFORM_WHATSAPP, getSubscription, listMyWorkspaces, planPrice, waLink, type InvoiceView } from "@jadwalin/core";
+import { PAID_PLAN_IDS, PERIODS, PLANS, PLATFORM_BANK, PLATFORM_WHATSAPP, SETUP_PROMO, getSubscription, listMyWorkspaces, planPrice, waLink, type InvoiceView } from "@jadwalin/core";
 import { notFound } from "next/navigation";
 import { ConfirmButton } from "@/components/confirm-button";
 import { CopyButton } from "@/components/copy-button";
@@ -46,7 +46,7 @@ export default async function PaketPage({ params, searchParams }: { params: Prom
         <p>
           {sub.plan === "gratis" ? "Anda memakai paket Gratis." : sub.active ? <>Paket {PLANS[sub.plan].label} aktif sampai <strong>{fmtDateTime(sub.planUntil!, mine.timezone)}</strong>.</> : <>Paket {PLANS[sub.plan].label} sudah berakhir{sub.planUntil ? ` pada ${fmtDateTime(sub.planUntil, mine.timezone)}` : ""}. Perpanjang di bawah.</>}
         </p>
-        <small>Batas tiap paket sedang disiapkan dan belum diberlakukan di aplikasi; harga di bawah masih usulan.</small>
+        <small>Garansi 30 hari tanpa kontrak. Batas tiap paket belum diberlakukan di aplikasi.</small>
       </section>
 
       {inv ? (
@@ -77,12 +77,14 @@ export default async function PaketPage({ params, searchParams }: { params: Prom
         </section>
       ) : isOwner ? (
         <section className="panel" aria-label="Upgrade paket">
-          <div className="panel-head"><h2>Upgrade paket</h2><p>Pilih paket dan periode. Tahunan hemat 2 bulan.</p></div>
+          <div className="panel-head"><h2>Upgrade paket</h2><p>Pilih paket dan periode. Total tagihan (termasuk setup sekali bayar bila ada) ditampilkan setelah Anda memilih.</p></div>
           <div className="plan-grid">
-            {(["pro", "bisnis"] as const).map((p) => (
+            {PAID_PLAN_IDS.map((p) => (
               <form key={p} action={createInvoiceAction.bind(null, slug)} className="plan-card">
                 <h3>{PLANS[p].label}</h3>
+                <small>{PLANS[p].note}</small>
                 <p className="plan-price">{fmtIdr(planPrice(p, 1))}<small> / bulan</small></p>
+                {PLANS[p].setupNormalIdr > 0 && !sub.setupPaid && <p><small>Setup sekali bayar: <b>{fmtIdr(PLANS[p].setupPromoIdr)}</b> <s>{fmtIdr(PLANS[p].setupNormalIdr)}</s> (promo sampai 31 Des 2026 untuk {SETUP_PROMO.maxBusinesses} usaha pertama)</small></p>}
                 <ul>{PLANS[p].highlights.map((h) => <li key={h}>{h}</li>)}</ul>
                 <input type="hidden" name="plan" value={p} />
                 <label>Periode

@@ -1,5 +1,7 @@
 # Rencana harga jadwalin.id (USULAN, menunggu persetujuan pemilik)
 
+> **Diganti 2026-11-15:** harga resmi sekarang mengikuti landing/brosur (Perorangan, Studio, Lapangan & Kelas, Klinik: setup sekali bayar + langganan bulanan), diterapkan di `packages/core/src/platform.ts` dan migrasi 0041. Tabel Gratis/Pro/Bisnis di bawah ini arsip. Lihat `docs/business-model.md`.
+
 > **Diperbarui 2026-11-08 (ADR 0002):** jadwalin.id tidak memproses pembayaran. Penyedia jasa menerima uang langsung dari pelanggannya lewat metode yang ia atur sendiri (QRIS statis, rekening, dll.). **Tidak ada fee transaksi**; pendapatan hanya dari langganan dan onboarding. Baris/bagian fee platform di bawah ini sudah tidak berlaku.
 
 Status: usulan 2026-11-08. Belum berlaku, belum ada penagihan, belum ada di kode (batas paket belum diterapkan di entitlements).

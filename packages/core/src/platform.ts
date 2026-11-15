@@ -18,21 +18,50 @@ export const PLATFORM_BANK = { bank: "BCA", number: "2490405715", holder: "Fariz
 /** WhatsApp pemilik platform untuk pintasan "kirim bukti + konteks" (tautan wa.me, bukan API). */
 export const PLATFORM_WHATSAPP = "628567500965";
 
-export const PLAN_IDS = ["gratis", "pro", "bisnis"] as const;
+export const PLAN_IDS = ["gratis", "perorangan", "studio", "lapangan", "klinik"] as const;
 export type PlanId = (typeof PLAN_IDS)[number];
+export type PaidPlanId = Exclude<PlanId, "gratis">;
+export const PAID_PLAN_IDS = ["perorangan", "studio", "lapangan", "klinik"] as const;
 
-/** Harga usulan (docs/pricing.md): tahunan = 10x bulanan. Batas fitur belum ditegakkan di kode (entitlements masih bawaan). */
-export const PLANS: Record<PlanId, { label: string; monthlyIdr: number; yearlyIdr: number; highlights: string[] }> = {
-  gratis: { label: "Gratis", monthlyIdr: 0, yearlyIdr: 0, highlights: ["3 jenis pertemuan", "2 anggota tim", "Berkas maks. 10 MB", "300 email notifikasi/bulan", "Log audit 100 terakhir"] },
-  pro: { label: "Pro", monthlyIdr: 79_000, yearlyIdr: 790_000, highlights: ["15 jenis pertemuan", "5 anggota tim", "Berkas maks. 25 MB", "2.000 email notifikasi/bulan", "Log audit 1.000 terakhir", "Dukungan email"] },
-  bisnis: { label: "Bisnis", monthlyIdr: 199_000, yearlyIdr: 1_990_000, highlights: ["50 jenis pertemuan", "20 anggota tim", "Berkas maks. 50 MB", "10.000 email notifikasi/bulan", "Log audit penuh", "Dukungan email prioritas"] },
+interface PlanDef {
+  label: string;
+  note: string;
+  monthlyIdr: number;
+  yearlyIdr: number;
+  /** Biaya setup sekali bayar: harga promo dan normal (0 = tanpa setup). */
+  setupPromoIdr: number;
+  setupNormalIdr: number;
+  highlights: string[];
+}
+
+/**
+ * Paket jual (model bisnis 2026-11-15, sama dengan landing/brosur): setup sekali bayar + langganan bulanan.
+ * `gratis` hanya masa uji (tidak ditagih). Tahunan = 10x bulanan, kecuali Perorangan (Rp399.000 per tahun).
+ * Batas fitur per paket belum ditegakkan di kode (entitlements masih bawaan).
+ */
+export const PLANS: Record<PlanId, PlanDef> = {
+  gratis: { label: "Gratis (uji coba)", note: "Masa uji sebelum berlangganan", monthlyIdr: 0, yearlyIdr: 0, setupPromoIdr: 0, setupNormalIdr: 0, highlights: ["Halaman booking publik", "Pengaturan layanan dan jam kerja"] },
+  perorangan: { label: "Perorangan", note: "Tutor, coach, MUA, konsultan", monthlyIdr: 49_000, yearlyIdr: 399_000, setupPromoIdr: 0, setupNormalIdr: 0, highlights: ["Tanpa biaya setup", "Halaman booking dan DP manual", "Tiket dan berkas"] },
+  studio: { label: "Studio", note: "Studio pilates, yoga, foto, salon", monthlyIdr: 250_000, yearlyIdr: 2_500_000, setupPromoIdr: 1_000_000, setupNormalIdr: 2_000_000, highlights: ["Penyiapan halaman oleh kami", "Halaman booking dan DP manual", "Tiket, berkas, sewa barang"] },
+  lapangan: { label: "Lapangan & Kelas", note: "Banyak lapangan, ruangan, atau kelas", monthlyIdr: 400_000, yearlyIdr: 4_000_000, setupPromoIdr: 1_500_000, setupNormalIdr: 3_000_000, highlights: ["Penyiapan halaman oleh kami", "Beberapa lapangan/ruangan/kelas", "Tiket, berkas, sewa barang"] },
+  klinik: { label: "Klinik", note: "Banyak dokter atau terapis", monthlyIdr: 600_000, yearlyIdr: 6_000_000, setupPromoIdr: 2_500_000, setupNormalIdr: 5_000_000, highlights: ["Penyiapan halaman oleh kami", "Banyak dokter/terapis", "Tiket, berkas, sewa barang"] },
 };
 
 export const PERIODS = { bulanan: { months: 1, label: "Bulanan" }, tahunan: { months: 12, label: "Tahunan (hemat 2 bulan)" } } as const;
 export type PeriodId = keyof typeof PERIODS;
 
-export function planPrice(plan: Exclude<PlanId, "gratis">, months: 1 | 12): number {
+/** Promo setup: berlaku sampai akhir 2026 (WIB) untuk 10 usaha berbayar pertama. */
+export const SETUP_PROMO = { untilUtc: new Date("2026-12-31T16:59:59Z"), maxBusinesses: 10 } as const;
+
+export function planPrice(plan: PaidPlanId, months: 1 | 12): number {
   return months === 12 ? PLANS[plan].yearlyIdr : PLANS[plan].monthlyIdr;
+}
+
+/** Biaya setup untuk satu usaha baru: harga promo bila masih dalam masa promo dan kuota belum habis. */
+export function setupPrice(plan: PaidPlanId, now: Date, setupsAlreadySold: number): number {
+  const p = PLANS[plan];
+  const promo = now.getTime() <= SETUP_PROMO.untilUtc.getTime() && setupsAlreadySold < SETUP_PROMO.maxBusinesses;
+  return promo ? p.setupPromoIdr : p.setupNormalIdr;
 }
 
 const ALPHABET = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
@@ -67,9 +96,11 @@ const PROOF_MAX_BYTES = 5 * 1024 * 1024;
 export interface InvoiceView {
   id: string;
   code: string;
-  plan: Exclude<PlanId, "gratis">;
+  plan: PaidPlanId;
   months: 1 | 12;
   amountIdr: number;
+  /** Bagian setup dalam total (0 bila tidak ada). */
+  setupIdr: number;
   status: "pending" | "awaiting_verification" | "paid" | "rejected" | "cancelled";
   hasProof: boolean;
   proofNote: string | null;
@@ -83,6 +114,8 @@ export interface SubscriptionView {
   planUntil: Date | null;
   /** Paket berbayar masih berlaku (belum lewat tanggal berakhir). */
   active: boolean;
+  /** Setup sekali bayar sudah lunas atau usaha sudah berpaket (setup tidak ditagih lagi). */
+  setupPaid: boolean;
   /** Tagihan terbuka (menunggu bukti / verifikasi) bila ada. */
   open: InvoiceView | null;
   history: InvoiceView[];
@@ -95,6 +128,7 @@ const toInvoiceView = (r: InvoiceRow): InvoiceView => ({
   plan: r.plan as InvoiceView["plan"],
   months: r.months as 1 | 12,
   amountIdr: r.amountIdr,
+  setupIdr: r.setupIdr,
   status: r.status as InvoiceView["status"],
   hasProof: !!r.proofFileId && !!r.submittedAt,
   proofNote: r.proofNote,
@@ -110,23 +144,30 @@ export async function getSubscription(pool: pg.Pool, actor: Actor, now = new Dat
     const plan = (PLAN_IDS as readonly string[]).includes(ws?.plan ?? "") ? (ws!.plan as PlanId) : "gratis";
     const active = plan !== "gratis" && !!ws?.planUntil && ws.planUntil.getTime() > now.getTime();
     const open = rows.find((r) => r.status === "pending" || r.status === "awaiting_verification");
-    return { plan, planUntil: ws?.planUntil ?? null, active, open: open ? toInvoiceView(open) : null, history: rows.filter((r) => r !== open).map(toInvoiceView) };
+    return { plan, planUntil: ws?.planUntil ?? null, active, setupPaid: plan !== "gratis" || rows.some((r) => r.status === "paid"), open: open ? toInvoiceView(open) : null, history: rows.filter((r) => r !== open).map(toInvoiceView) };
   });
 }
 
 /** Pemilik membuat tagihan upgrade. Satu tagihan terbuka per usaha. Nominal dari daftar harga, bukan input pengguna. */
-export async function createUpgradeInvoice(pool: pg.Pool, actor: Actor, input: { plan: string; period: string }) {
-  if (input.plan !== "pro" && input.plan !== "bisnis") throw new AppError("invalid_input", "Pilih paket Pro atau Bisnis.");
+export async function createUpgradeInvoice(pool: pg.Pool, actor: Actor, input: { plan: string; period: string }, now = new Date()) {
+  if (!(PAID_PLAN_IDS as readonly string[]).includes(input.plan)) throw new AppError("invalid_input", "Pilih salah satu paket berbayar.");
+  const plan = input.plan as PaidPlanId;
   const period = PERIODS[input.period as PeriodId];
   if (!period) throw new AppError("invalid_input", "Pilih periode bulanan atau tahunan.");
   return withWorkspace(pool, actor, "owner", async (db, access) => {
-    const amount = planPrice(input.plan as "pro" | "bisnis", period.months);
+    // Setup ditagih sekali: hanya bila usaha belum pernah membayar dan belum berpaket (mis. diaktifkan manual oleh admin).
+    const [ws] = await db.select({ plan: schema.workspaces.plan }).from(schema.workspaces).where(eq(schema.workspaces.id, access.workspaceId)).limit(1);
+    const paidBefore = await db.select({ id: schema.subscriptionInvoices.id }).from(schema.subscriptionInvoices).where(eq(schema.subscriptionInvoices.status, "paid")).limit(1);
+    const setupDue = paidBefore.length === 0 && (ws?.plan ?? "gratis") === "gratis";
+    const sold = setupDue ? await asWorker(db, (w) => w.select({ n: sql<number>`count(*)::int` }).from(schema.subscriptionInvoices).where(and(eq(schema.subscriptionInvoices.status, "paid"), sql`${schema.subscriptionInvoices.setupIdr} > 0`))) : [{ n: 0 }];
+    const setup = setupDue ? setupPrice(plan, now, sold[0]?.n ?? 0) : 0;
+    const amount = setup + planPrice(plan, period.months);
     try {
       const [row] = await asWorker(db, (w) =>
-        w.insert(schema.subscriptionInvoices).values({ workspaceId: access.workspaceId, requestedBy: actor.userId, plan: input.plan, months: period.months, amountIdr: amount }).returning({ id: schema.subscriptionInvoices.id }),
+        w.insert(schema.subscriptionInvoices).values({ workspaceId: access.workspaceId, requestedBy: actor.userId, plan, months: period.months, amountIdr: amount, setupIdr: setup }).returning({ id: schema.subscriptionInvoices.id }),
       );
-      await audit(db, { workspaceId: access.workspaceId, actorUserId: actor.userId, action: "plan.invoice_created", entityType: "subscription_invoice", entityId: row!.id, diff: { plan: input.plan, months: period.months, amountIdr: amount } });
-      return { id: row!.id, code: invoiceCode(row!.id), amountIdr: amount };
+      await audit(db, { workspaceId: access.workspaceId, actorUserId: actor.userId, action: "plan.invoice_created", entityType: "subscription_invoice", entityId: row!.id, diff: { plan, months: period.months, amountIdr: amount, setupIdr: setup } });
+      return { id: row!.id, code: invoiceCode(row!.id), amountIdr: amount, setupIdr: setup };
     } catch (e) {
       const pg = e as { code?: string; cause?: { code?: string } };
       if (pg.code === "23505" || pg.cause?.code === "23505") throw new AppError("invalid_input", "Masih ada tagihan upgrade yang belum selesai. Selesaikan atau batalkan dulu.");
@@ -249,7 +290,7 @@ export async function adminOverview(pool: pg.Pool, userId: string, allowed: stri
     const [u] = await db.select({ total: sql<number>`count(*)::int`, recent: sql<number>`count(*) FILTER (WHERE ${schema.users.createdAt} >= ${since})::int`, unverified: sql<number>`count(*) FILTER (WHERE NOT ${schema.users.emailVerified})::int` }).from(schema.users);
     const byPlan = await db.select({ plan: schema.workspaces.plan, n: sql<number>`count(*)::int` }).from(schema.workspaces).where(isNull(schema.workspaces.deletedAt)).groupBy(schema.workspaces.plan);
     const inv = await db.select({ status: schema.subscriptionInvoices.status, n: sql<number>`count(*)::int` }).from(schema.subscriptionInvoices).groupBy(schema.subscriptionInvoices.status);
-    const wp: Record<PlanId, number> = { gratis: 0, pro: 0, bisnis: 0 };
+    const wp: Record<PlanId, number> = { gratis: 0, perorangan: 0, studio: 0, lapangan: 0, klinik: 0 };
     for (const r of byPlan) if ((PLAN_IDS as readonly string[]).includes(r.plan)) wp[r.plan as PlanId] = r.n;
     return { usersTotal: u?.total ?? 0, usersLast7Days: u?.recent ?? 0, usersUnverified: u?.unverified ?? 0, workspacesByPlan: wp, invoicesAwaiting: inv.find((x) => x.status === "awaiting_verification")?.n ?? 0, invoicesPending: inv.find((x) => x.status === "pending")?.n ?? 0 };
   });

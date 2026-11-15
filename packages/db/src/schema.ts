@@ -577,9 +577,11 @@ export const subscriptionInvoices = pgTable(
     id: id(),
     workspaceId: workspaceId(),
     requestedBy: uuid("requested_by").notNull().references(() => users.id),
-    plan: text("plan").notNull(), // pro | bisnis
+    plan: text("plan").notNull(), // perorangan | studio | lapangan | klinik
     months: integer("months").notNull(), // 1 (bulanan) | 12 (tahunan)
     amountIdr: bigint("amount_idr", { mode: "number" }).notNull(),
+    /** Bagian setup sekali bayar di dalam amountIdr (0 = hanya langganan). */
+    setupIdr: bigint("setup_idr", { mode: "number" }).notNull().default(0),
     /** pending (menunggu bukti) | awaiting_verification | paid | rejected | cancelled */
     status: text("status").notNull().default("pending"),
     proofFileId: uuid("proof_file_id").references(() => files.id),
